@@ -10,6 +10,9 @@ import {
   Sliders,
   Presentation,
   X,
+  FileText,
+  FileSpreadsheet,
+  Image as ImageIcon,
 } from 'lucide-react';
 import {
   getConversionRegistry,
@@ -58,6 +61,27 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
     return 'unknown';
   };
 
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const getFormatIcon = (key: string) => {
+    switch (key) {
+      case 'docx':
+        return <FileText className="w-5 h-5 text-academic-navy" />;
+      case 'pdf':
+        return <FileType className="w-5 h-5 text-red-600" />;
+      case 'csv':
+        return <FileSpreadsheet className="w-5 h-5 text-emerald-600" />;
+      case 'image':
+        return <ImageIcon className="w-5 h-5 text-amber-600" />;
+      default:
+        return <FileText className="w-5 h-5 text-indigo-600" />;
+    }
+  };
+
   const handleFileSelected = (selectedFile: File) => {
     setFile(selectedFile);
     setConversionResult(null);
@@ -96,6 +120,14 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
     }
   };
 
+  const handleFormatTagClick = (acceptExt: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (fileInputRef.current) {
+      fileInputRef.current.accept = acceptExt;
+      fileInputRef.current.click();
+    }
+  };
+
   const handleExecuteConversion = async () => {
     if (!file || !selectedTargetFormat) return;
 
@@ -124,23 +156,33 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
       : [];
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6 md:p-8 bg-white rounded-2xl border border-slate-200 shadow-xl">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-6 border-b border-slate-200 gap-4">
-        <div>
-          <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
-            Universal Document Center
-          </h2>
-          <p className="text-xs md:text-sm text-slate-500 mt-1">
-            Format academic assignments, convert between file types, or generate presentation decks.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-academic-blue border border-blue-200">
-            OpenXML • PDF • PPTX • Images • CSV
-          </span>
-        </div>
+    <div className="w-full max-w-4xl mx-auto p-6 md:p-8 bg-white rounded-2xl border border-slate-200/80 border-t-2 border-t-indigo-600 shadow-xl transition-all duration-300">
+      {/* Header (Clean, professional, without generic blue pill) */}
+      <div className="pb-6 mb-6 border-b border-slate-200">
+        <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+          Universal Document Center
+        </h2>
+        <p className="text-xs md:text-sm text-slate-500 mt-1">
+          Format academic assignments, convert between file types, or generate presentation decks.
+        </p>
       </div>
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".docx,.pdf,.pptx,.png,.jpg,.jpeg,.csv,.txt,.md"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            handleFileSelected(e.target.files[0]);
+          }
+          // Reset accept filter to default for next click
+          if (fileInputRef.current) {
+            fileInputRef.current.accept = '.docx,.pdf,.pptx,.png,.jpg,.jpeg,.csv,.txt,.md';
+          }
+        }}
+      />
 
       {/* Upload Zone */}
       {!file ? (
@@ -152,71 +194,122 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-2xl p-10 md:p-14 text-center cursor-pointer transition-all duration-300 ${
+          className={`border-2 border-dashed rounded-2xl p-10 md:p-14 text-center cursor-pointer transition-all duration-200 ${
             isDragging
-              ? 'border-academic-teal bg-teal-50/50 scale-[1.01]'
-              : 'border-slate-300 hover:border-academic-blue bg-slate-50/50 hover:bg-white shadow-xs'
+              ? 'border-indigo-600 bg-indigo-50/60 scale-[1.01] shadow-md'
+              : 'border-slate-300 hover:border-indigo-500 bg-slate-50/50 hover:bg-white shadow-2xs hover:shadow-sm'
           }`}
+          role="button"
+          tabIndex={0}
+          aria-label="Upload document dropzone"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }
+          }}
         >
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            onChange={(e) => {
-              if (e.target.files && e.target.files.length > 0) {
-                handleFileSelected(e.target.files[0]);
-              }
-            }}
-          />
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-teal-50 text-academic-teal flex items-center justify-center mb-4 shadow-sm border border-teal-100">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4 shadow-2xs border border-indigo-100 transition-transform duration-200 group-hover:scale-105">
             <UploadCloud className="w-8 h-8" />
           </div>
           <h3 className="text-base font-bold text-slate-900">
             Upload Any Academic Document or File
           </h3>
-          <p className="text-xs md:text-sm text-slate-500 max-w-md mx-auto mt-1 mb-4">
-            Drag and drop your assignment, syllabus, scan, notes, or dataset here, or click to browse.
+          <p className="text-xs md:text-sm text-slate-500 max-w-md mx-auto mt-1 mb-5 leading-relaxed">
+            Drag and drop your assignment, syllabus, scan, notes, or dataset here, or click anywhere to browse.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold text-slate-600">
-            <span className="px-2.5 py-1 rounded bg-white border border-slate-200 shadow-2xs">.docx</span>
-            <span className="px-2.5 py-1 rounded bg-white border border-slate-200 shadow-2xs">.pdf</span>
-            <span className="px-2.5 py-1 rounded bg-white border border-slate-200 shadow-2xs">.png / .jpg</span>
-            <span className="px-2.5 py-1 rounded bg-white border border-slate-200 shadow-2xs">.csv</span>
-            <span className="px-2.5 py-1 rounded bg-white border border-slate-200 shadow-2xs">.txt</span>
+
+          {/* Clickable Format Tags (Filters OS picker to that format) */}
+          <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-slate-600">
+            <button
+              type="button"
+              onClick={(e) => handleFormatTagClick('.docx', e)}
+              className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-slate-100 hover:border-slate-300 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0"
+              title="Upload Word Document"
+            >
+              .docx
+            </button>
+            <button
+              type="button"
+              onClick={(e) => handleFormatTagClick('.pdf', e)}
+              className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-slate-100 hover:border-slate-300 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0"
+              title="Upload PDF Document"
+            >
+              .pdf
+            </button>
+            <button
+              type="button"
+              onClick={(e) => handleFormatTagClick('.png,.jpg,.jpeg,.webp', e)}
+              className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-slate-100 hover:border-slate-300 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0"
+              title="Upload Images"
+            >
+              .png / .jpg
+            </button>
+            <button
+              type="button"
+              onClick={(e) => handleFormatTagClick('.csv', e)}
+              className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-slate-100 hover:border-slate-300 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0"
+              title="Upload CSV Dataset"
+            >
+              .csv
+            </button>
+            <button
+              type="button"
+              onClick={(e) => handleFormatTagClick('.txt,.md', e)}
+              className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-slate-100 hover:border-slate-300 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0"
+              title="Upload Plain Text"
+            >
+              .txt
+            </button>
           </div>
         </div>
       ) : (
-        /* File Selected & Task Chooser */
-        <div className="space-y-6 animate-fadeIn">
-          {/* File Card */}
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+        /* File Selected State & Task Chooser */
+        <div className="space-y-6 animate-fade-up">
+          {/* File Card & Actions */}
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-academic-navy text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs">
-                {file.name.split('.').pop() || 'DOC'}
+              <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-2xs shrink-0">
+                {getFormatIcon(currentFmtKey)}
               </div>
-              <div>
-                <h4 className="font-bold text-sm text-slate-900 truncate max-w-md">{file.name}</h4>
+              <div className="min-w-0">
+                <h4 className="font-bold text-sm text-slate-900 truncate max-w-sm sm:max-w-md">
+                  {file.name}
+                </h4>
                 <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <span>{(file.size / 1024).toFixed(1)} KB</span>
+                  <span className="font-medium">{formatFileSize(file.size)}</span>
                   <span>•</span>
-                  <span className="capitalize">{currentFmtKey} Format</span>
+                  <span className="capitalize font-medium">{currentFmtKey} Format</span>
                 </div>
               </div>
             </div>
 
-            <button
-              onClick={() => {
-                setFile(null);
-                setConversionResult(null);
-              }}
-              className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200/60 transition-colors"
-              title="Remove file"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            {/* Replace / Remove Controls */}
+            <div className="flex items-center gap-2 justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg shadow-2xs transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0"
+              >
+                Replace File
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFile(null);
+                  setConversionResult(null);
+                  setErrorMessage(null);
+                }}
+                className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                title="Remove file"
+                aria-label="Remove file"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          {/* Task Selector */}
+          {/* Task Selector Tabs */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
               Select Your Task
@@ -226,14 +319,14 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedTask('format')}
-                className={`p-4 rounded-xl border text-left transition-all ${
+                className={`p-4 rounded-xl border text-left transition-all duration-200 ${
                   selectedTask === 'format'
-                    ? 'border-academic-navy bg-blue-50/40 ring-2 ring-academic-navy/20 shadow-sm'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                    ? 'border-academic-navy bg-blue-50/50 ring-2 ring-academic-navy/20 shadow-sm'
+                    : 'border-slate-200 hover:border-slate-300 bg-white hover:-translate-y-0.5'
                 }`}
               >
                 <div className="flex items-center gap-2 text-academic-navy font-bold text-sm mb-1">
-                  <Sliders className="w-4 h-4 text-academic-blue" />
+                  <Sliders className="w-4 h-4 text-academic-navy" />
                   <span>College Formatter</span>
                 </div>
                 <p className="text-xs text-slate-500 leading-snug">
@@ -245,14 +338,14 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedTask('convert')}
-                className={`p-4 rounded-xl border text-left transition-all ${
+                className={`p-4 rounded-xl border text-left transition-all duration-200 ${
                   selectedTask === 'convert'
-                    ? 'border-academic-teal bg-teal-50/40 ring-2 ring-academic-teal/20 shadow-sm'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                    ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-600/20 shadow-sm'
+                    : 'border-slate-200 hover:border-slate-300 bg-white hover:-translate-y-0.5'
                 }`}
               >
-                <div className="flex items-center gap-2 text-academic-teal font-bold text-sm mb-1">
-                  <FileType className="w-4 h-4 text-academic-teal" />
+                <div className="flex items-center gap-2 text-indigo-700 font-bold text-sm mb-1">
+                  <FileType className="w-4 h-4 text-indigo-600" />
                   <span>File Converter</span>
                 </div>
                 <p className="text-xs text-slate-500 leading-snug">
@@ -264,10 +357,10 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedTask('presentation')}
-                className={`p-4 rounded-xl border text-left transition-all ${
+                className={`p-4 rounded-xl border text-left transition-all duration-200 ${
                   selectedTask === 'presentation'
-                    ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-600/20 shadow-sm'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                    ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-600/20 shadow-sm'
+                    : 'border-slate-200 hover:border-slate-300 bg-white hover:-translate-y-0.5'
                 }`}
               >
                 <div className="flex items-center gap-2 text-indigo-700 font-bold text-sm mb-1">
@@ -283,14 +376,15 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
 
           {/* Conditional Workflow Action Area */}
           {selectedTask === 'format' && (
-            <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 text-left">
+            <div className="p-5 rounded-xl bg-slate-50 border border-slate-200/90 text-left animate-fade-up">
               <h4 className="font-bold text-sm text-slate-900 mb-1">Ready to Format Assignment</h4>
               <p className="text-xs text-slate-600 mb-4 leading-relaxed">
                 Your document will be loaded into the 6-step AssignmentReady workspace where you can attach college rubrics, configure page numbering, and download compliant OpenXML documents.
               </p>
               <button
+                type="button"
                 onClick={() => onStartAssignmentFormatting(file)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-academic-navy hover:bg-academic-indigo shadow-md transition-all"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-academic-navy hover:bg-academic-indigo shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
               >
                 <span>Launch Formatting Workspace</span>
                 <ArrowRight className="w-4 h-4" />
@@ -299,14 +393,15 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
           )}
 
           {selectedTask === 'presentation' && (
-            <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 text-left">
+            <div className="p-5 rounded-xl bg-slate-50 border border-slate-200/90 text-left animate-fade-up">
               <h4 className="font-bold text-sm text-slate-900 mb-1">Generate PowerPoint Presentation</h4>
               <p className="text-xs text-slate-600 mb-4 leading-relaxed">
                 Open the presentation deck editor to review the structured slide outline, choose from 5 academic themes, and download an editable .pptx file.
               </p>
               <button
+                type="button"
                 onClick={() => onOpenPresentationWorkspace(file)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
               >
                 <span>Open Presentation Deck Generator</span>
                 <ArrowRight className="w-4 h-4" />
@@ -315,7 +410,7 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
           )}
 
           {selectedTask === 'convert' && (
-            <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+            <div className="p-5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-4 animate-fade-up">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                   Select Output Target Format
@@ -328,11 +423,11 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
                         type="button"
                         disabled={!opt.available}
                         onClick={() => setSelectedTargetFormat(opt.target_format)}
-                        className={`p-3 rounded-lg border text-left transition-all ${
+                        className={`p-3 rounded-xl border text-left transition-all duration-200 ${
                           selectedTargetFormat === opt.target_format
-                            ? 'border-academic-teal bg-white ring-2 ring-academic-teal/30 shadow-xs'
+                            ? 'border-indigo-600 bg-white ring-2 ring-indigo-500/30 shadow-xs'
                             : opt.available
-                            ? 'border-slate-200 bg-white hover:border-slate-300'
+                            ? 'border-slate-200 bg-white hover:border-slate-300 hover:-translate-y-0.5'
                             : 'border-slate-200 bg-slate-100 opacity-50 cursor-not-allowed'
                         }`}
                       >
@@ -364,7 +459,7 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
                     value={customFilename}
                     onChange={(e) => setCustomFilename(e.target.value)}
                     placeholder="e.g. My_Assignment_Final"
-                    className="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-academic-teal focus:border-academic-teal bg-white"
+                    className="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
                   />
                   <span className="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-200 rounded-lg">
                     .{selectedTargetFormat || 'ext'}
@@ -390,14 +485,14 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
                         {conversionResult.output_filename}
                       </h4>
                       <p className="text-xs text-emerald-700">
-                        Successfully converted ({(conversionResult.size_bytes / 1024).toFixed(1)} KB)
+                        Successfully converted ({formatFileSize(conversionResult.size_bytes)})
                       </p>
                     </div>
                   </div>
                   <a
                     href={conversionResult.download_url}
                     download={conversionResult.output_filename}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 shadow-sm transition-all"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 shadow-sm transition-all duration-150 hover:-translate-y-0.5"
                   >
                     <Download className="w-4 h-4" />
                     <span>Download Converted File</span>
@@ -411,7 +506,7 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
                   type="button"
                   disabled={isConverting || !selectedTargetFormat}
                   onClick={handleExecuteConversion}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-academic-teal hover:bg-academic-teal-dark shadow-md transition-all disabled:opacity-50"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-academic-navy hover:bg-academic-indigo shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 disabled:opacity-50"
                 >
                   {isConverting ? (
                     <>

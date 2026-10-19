@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import {
   Presentation,
   UploadCloud,
-  Sparkles,
+  BookOpen,
   Download,
   Plus,
   Trash2,
@@ -351,7 +351,7 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
           <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
               <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-academic-teal" />
+                <BookOpen className="w-4 h-4 text-academic-teal" />
                 <span>Start with Sample Academic Outline</span>
               </h4>
               <p className="text-xs text-slate-500 mt-0.5">

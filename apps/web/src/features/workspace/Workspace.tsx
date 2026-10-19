@@ -76,7 +76,8 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     <div className="min-h-[calc(100vh-16rem)] flex flex-col">
       {/* Workspace Sub-header Bar */}
       <div className="bg-slate-100/70 border-b border-slate-200 py-2 px-4 sm:px-8 flex items-center justify-between text-xs text-slate-600">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
+          <img src="/logo.jpg" alt="Logo" className="w-4 h-4 rounded object-contain" />
           <span className="font-semibold text-slate-800">Formatting Workspace:</span>
           <span>{assignmentFile ? assignmentFile.name : 'Upload assignment to begin'}</span>
         </div>

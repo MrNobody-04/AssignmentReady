@@ -11,7 +11,6 @@ import {
   Pause,
   Play,
   ArrowRight,
-  Sparkles,
   RefreshCw,
   Award,
 } from 'lucide-react';
@@ -144,8 +143,8 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
       aria-label="AssignmentReady Interactive Feature Showcase"
     >
       {/* Top Scene Tabs Navigation */}
-      <div className="flex items-center justify-between gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none">
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 backdrop-blur-md rounded-xl border border-slate-200 shadow-inner">
+      <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none flex-nowrap w-full">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100/90 backdrop-blur-md rounded-xl border border-slate-200/90 shadow-inner shrink-0">
           {SCENES.map((scene, idx) => {
             const Icon = scene.icon;
             const isActive = currentScene === idx;
@@ -153,26 +152,26 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
               <button
                 key={scene.id}
                 onClick={() => setCurrentScene(idx)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-300 ${
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
                   isActive
                     ? 'bg-white text-academic-navy shadow-sm border border-slate-200/80 scale-[1.02]'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                 }`}
                 aria-selected={isActive}
                 role="tab"
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-academic-teal' : 'text-slate-400'}`} />
-                <span className="hidden sm:inline">{scene.label}</span>
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
+                <span>{scene.label}</span>
               </button>
             );
           })}
         </div>
 
         {/* Carousel Play/Pause & Nav Arrows */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 shrink-0 pl-2">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="p-2 text-slate-500 hover:text-slate-900 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-xs transition-colors"
+            className="p-2 text-slate-500 hover:text-slate-900 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-2xs transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
             title={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
             aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
           >
@@ -180,7 +179,7 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
           </button>
           <button
             onClick={handlePrev}
-            className="p-2 text-slate-500 hover:text-slate-900 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-xs transition-colors"
+            className="p-2 text-slate-500 hover:text-slate-900 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-2xs transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
             title="Previous feature"
             aria-label="Previous feature"
           >
@@ -188,7 +187,7 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
           </button>
           <button
             onClick={handleNext}
-            className="p-2 text-slate-500 hover:text-slate-900 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-xs transition-colors"
+            className="p-2 text-slate-500 hover:text-slate-900 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-2xs transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
             title="Next feature"
             aria-label="Next feature"
           >
@@ -198,17 +197,17 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
       </div>
 
       {/* Main Showcase Stage */}
-      <div className="relative bg-white rounded-2xl border border-slate-200/90 shadow-xl overflow-hidden transition-all duration-500 min-h-[460px] flex flex-col justify-between">
+      <div className="relative bg-white rounded-2xl border border-slate-200/80 border-t-2 border-t-indigo-600 shadow-xl overflow-hidden transition-all duration-500 min-h-[460px] flex flex-col justify-between">
         {/* Top Header Strip */}
         <div className="flex items-center justify-between px-6 py-3.5 bg-slate-50/80 border-b border-slate-200/80">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-academic-teal border border-teal-200">
-              <Sparkles className="w-3 h-3 text-academic-teal" />
-              <span>Scene {currentScene + 1} of 5: {activeMeta.tag}</span>
-            </span>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+            <span className="font-bold text-slate-900">Demonstration {currentScene + 1} of 5</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-slate-600 font-medium">{activeMeta.tag}</span>
           </div>
-          <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-            Interactive Live Simulation
+          <span className="text-[11px] font-semibold text-slate-400 tracking-wider uppercase">
+            Live Simulation
           </span>
         </div>
 
@@ -463,9 +462,17 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
                   <h4 className="font-bold text-sm text-slate-900">Institutional Audit Protocol</h4>
                   <span className="text-xs text-slate-500">Checking submission against academic criteria</span>
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Score: 100% Compliant</span>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <span className="text-xs font-bold text-slate-800 flex items-center justify-end gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      All Rules Passed
+                    </span>
+                    <span className="text-[10px] text-slate-500 block leading-tight">6 of 6 checks verified</span>
+                  </div>
+                  <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="w-full h-full bg-emerald-600 rounded-full" />
+                  </div>
                 </div>
               </div>
 
@@ -480,7 +487,7 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 flex items-start gap-2 text-left"
+                    className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 flex items-start gap-2 text-left hover:border-slate-300 transition-colors"
                   >
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
                     <div>
@@ -509,7 +516,7 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
             {currentScene === 3 ? (
               <button
                 onClick={onCreatePresentation}
-                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-academic-teal hover:bg-academic-teal-dark rounded-lg shadow-sm transition-all"
+                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-800 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
               >
                 <span>Create a Presentation</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -517,7 +524,7 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
             ) : (
               <button
                 onClick={onStartFormatting}
-                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-academic-navy hover:bg-academic-indigo rounded-lg shadow-sm transition-all"
+                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-academic-navy hover:bg-academic-indigo rounded-lg shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
               >
                 <span>Start Formatting</span>
                 <ArrowRight className="w-3.5 h-3.5" />

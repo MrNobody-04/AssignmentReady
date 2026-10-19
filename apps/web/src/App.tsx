@@ -77,6 +77,8 @@ export const App: React.FC = () => {
       <Footer
         onOpenPrivacy={() => setLegalModalType('privacy')}
         onOpenTerms={() => setLegalModalType('terms')}
+        onNavigate={(view) => setCurrentView(view)}
+        onOpenProfiles={() => setIsProfilesOpen(true)}
       />
 
       <ProfileManagerModal
