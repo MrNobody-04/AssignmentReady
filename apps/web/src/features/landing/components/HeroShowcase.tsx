@@ -291,8 +291,8 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10 w-full">
                 {/* Source PDF Card */}
                 <div className="w-48 p-4 bg-white rounded-xl border border-red-200 shadow-md flex flex-col items-center text-center">
-                  <div className="w-14 h-14 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-3">
-                    <FileType className="w-7 h-7" />
+                  <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-2.5">
+                    <FileType className="w-5 h-5" />
                   </div>
                   <span className="font-bold text-sm text-slate-800 mb-1">Lecture_Notes.pdf</span>
                   <span className="text-[11px] text-slate-500">Locked PDF Format</span>
@@ -303,8 +303,8 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
 
                 {/* Conversion Flow Animation */}
                 <div className="flex flex-col items-center gap-2">
-                  <div className="w-12 h-12 rounded-full bg-teal-50 border border-teal-200 flex items-center justify-center text-academic-teal shadow-inner animate-pulse">
-                    <RefreshCw className="w-6 h-6 animate-spin text-academic-teal" style={{ animationDuration: '6s' }} />
+                  <div className="w-10 h-10 rounded-full bg-teal-50 border border-teal-200 flex items-center justify-center text-academic-teal shadow-inner animate-pulse">
+                    <RefreshCw className="w-5 h-5 animate-spin text-academic-teal" style={{ animationDuration: '6s' }} />
                   </div>
                   <span className="text-xs font-semibold text-academic-teal tracking-wide">
                     Structure Extraction
@@ -314,8 +314,8 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
 
                 {/* Target Word Document Card */}
                 <div className="w-48 p-4 bg-white rounded-xl border-2 border-blue-300 shadow-lg flex flex-col items-center text-center relative">
-                  <div className="w-14 h-14 rounded-xl bg-blue-50 text-academic-blue flex items-center justify-center mb-3">
-                    <FileText className="w-7 h-7" />
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-academic-blue flex items-center justify-center mb-2.5">
+                    <FileText className="w-5 h-5" />
                   </div>
                   <span className="font-bold text-sm text-slate-800 mb-1">Lecture_Notes.docx</span>
                   <span className="text-[11px] text-slate-500">Editable Microsoft Word</span>

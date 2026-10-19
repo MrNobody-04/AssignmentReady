@@ -192,7 +192,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
             />
             {isUploading ? (
               <div className="flex flex-col items-center justify-center py-4">
-                <Loader2 className="w-10 h-10 text-academic-blue animate-spin mb-3" />
+                <Loader2 className="w-8 h-8 text-academic-blue animate-spin mb-3" />
                 <p className="text-sm font-semibold text-slate-800">
                   Inspecting Word document structure...
                 </p>
@@ -202,8 +202,8 @@ export const UploadStep: React.FC<UploadStepProps> = ({
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-4">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 mb-3">
-                  <UploadCloud className="w-6 h-6" />
+                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 mb-3 shadow-2xs">
+                  <UploadCloud className="w-5 h-5" />
                 </div>
                 <p className="text-base font-semibold text-slate-900">
                   Drop your Microsoft Word (.docx) file here
@@ -221,7 +221,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
-                <FileText className="w-6 h-6" />
+                <FileText className="w-5 h-5" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-900">{assignmentFile.name}</p>

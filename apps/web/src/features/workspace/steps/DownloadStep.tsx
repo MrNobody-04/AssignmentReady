@@ -61,8 +61,8 @@ export const DownloadStep: React.FC<DownloadStepProps> = ({
     <div className="space-y-8 max-w-3xl mx-auto">
       {/* Success Banner */}
       <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-8 text-center">
-        <div className="w-14 h-14 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-          <CheckCircle2 className="w-8 h-8" />
+        <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-2xs">
+          <CheckCircle2 className="w-5 h-5" />
         </div>
         <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
           Your Assignment is Formatted & Ready
