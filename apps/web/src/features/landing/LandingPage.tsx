@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  ShieldCheck,
   ArrowRight,
   BookOpen,
   FileCheck2,
@@ -10,363 +9,348 @@ import {
   CheckCircle2,
   Sliders,
   FileText,
+  Presentation,
+  Sparkles,
 } from 'lucide-react';
+import { HeroShowcase } from './components/HeroShowcase';
+import { UniversalUploadCenter } from '../converters/UniversalUploadCenter';
 
 interface LandingPageProps {
-  onStartFormatting: () => void;
+  onStartFormatting: (file?: File) => void;
+  onCreatePresentation: (file?: File) => void;
   onOpenProfiles: () => void;
+  onOpenConverter?: () => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onStartFormatting, onOpenProfiles }) => {
-  const [activeTab, setActiveTab] = useState<'unformatted' | 'formatted'>('formatted');
-
+export const LandingPage: React.FC<LandingPageProps> = ({
+  onStartFormatting,
+  onCreatePresentation,
+  onOpenProfiles,
+  onOpenConverter: _onOpenConverter,
+}) => {
   return (
     <div className="space-y-24 py-8">
-      {/* Hero Section */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-8 sm:pt-16">
-        {/* Subtle pill badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-academic-navy border border-blue-200 mb-6">
-          <ShieldCheck className="w-4 h-4 text-academic-blue" />
-          <span>Rule-Based OpenXML Engine • Zero Paid AI APIs</span>
+      {/* ==================================================== */}
+      {/* HERO SECTION */}
+      {/* ==================================================== */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-8 sm:pt-14">
+        {/* Subtle Pill Badge */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-teal-50 text-academic-teal border border-teal-200 mb-6 shadow-2xs">
+          <Sparkles className="w-4 h-4 text-academic-teal" />
+          <span>Academic Formatter • Universal Converter • Presentation Generator</span>
         </div>
 
         {/* Primary Headline */}
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] max-w-4xl mx-auto">
-          Your Assignment. Your College Rules.{' '}
-          <span className="text-academic-blue">Perfectfully Formatted.</span>
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.12] max-w-4xl mx-auto">
+          Your Assignment. Your Rules.{' '}
+          <span className="text-academic-teal">Ready to Submit.</span>
         </h1>
 
         {/* Supporting Description */}
-        <p className="mt-6 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-          AI tools generate text, but universities grade structure. Transform raw drafts into professionally formatted Microsoft Word documents adhering to your department's exact typography, margins, cover pages, and marking schemes.
+        <p className="mt-5 text-base sm:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
+          Format assignments, convert documents, follow college requirements, and transform reports into presentations — all in one workspace.
         </p>
 
-        {/* Action Buttons */}
+        {/* Hero CTAs */}
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
             type="button"
-            onClick={onStartFormatting}
+            onClick={() => onStartFormatting()}
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-bold text-white bg-academic-navy hover:bg-academic-indigo rounded-xl shadow-md transition-all hover:scale-[1.02]"
           >
-            <span>Format My Assignment</span>
+            <span>Start Formatting</span>
             <ArrowRight className="w-5 h-5" />
           </button>
 
           <button
             type="button"
+            onClick={() => onCreatePresentation()}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-bold text-white bg-academic-teal hover:bg-academic-teal-dark rounded-xl shadow-md transition-all hover:scale-[1.02]"
+          >
+            <Presentation className="w-5 h-5" />
+            <span>Create a Presentation</span>
+          </button>
+
+          <button
+            type="button"
             onClick={onOpenProfiles}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl transition-colors shadow-xs"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl transition-colors shadow-2xs"
           >
             <BookOpen className="w-4 h-4 text-academic-blue" />
-            <span>Explore College Profiles</span>
+            <span>College Profiles</span>
           </button>
         </div>
 
         {/* Trust Badges */}
-        <div className="mt-12 pt-8 border-t border-slate-200/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-medium text-slate-600">
+        <div className="mt-10 mb-12 pt-6 border-t border-slate-200/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-medium text-slate-600 max-w-4xl mx-auto">
+          <div className="flex items-center justify-center gap-1.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>Zero Paid AI APIs</span>
+          </div>
           <div className="flex items-center justify-center gap-1.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             <span>No Account Required</span>
           </div>
           <div className="flex items-center justify-center gap-1.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>Preserves Figures & Tables</span>
-          </div>
-          <div className="flex items-center justify-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>Genuine Word XML Fields</span>
+            <span>Authentic OpenXML Word Fields</span>
           </div>
           <div className="flex items-center justify-center gap-1.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             <span>1-Hour Automatic Cleanup</span>
           </div>
         </div>
+
+        {/* ==================================================== */}
+        {/* AUTOMATIC ANIMATED 5-SCENE FEATURE SHOWCASE */}
+        {/* ==================================================== */}
+        <div className="mt-6">
+          <HeroShowcase
+            onStartFormatting={() => onStartFormatting()}
+            onCreatePresentation={() => onCreatePresentation()}
+          />
+        </div>
       </section>
 
-      {/* Interactive Visual Demonstration Slider */}
+      {/* ==================================================== */}
+      {/* UNIVERSAL DOCUMENT UPLOAD & CONVERSION CENTER */}
+      {/* ==================================================== */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            See the Transformation
+        <div className="text-center mb-6">
+          <span className="text-xs font-bold text-academic-teal uppercase tracking-wider">
+            All-in-One Gateway
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+            Universal Document Center
           </h2>
-          <p className="text-sm text-slate-600 mt-2">
-            Compare an unformatted AI draft with an AssignmentReady institutional manuscript.
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-xl mx-auto">
+            Drop any supported document to immediately format college guidelines, convert file formats, or generate PowerPoint slides.
           </p>
-
-          {/* Toggle */}
-          <div className="inline-flex p-1 rounded-xl bg-slate-200 mt-5">
-            <button
-              type="button"
-              onClick={() => setActiveTab('unformatted')}
-              className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
-                activeTab === 'unformatted'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Raw AI Draft (Unformatted)
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('formatted')}
-              className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
-                activeTab === 'formatted'
-                  ? 'bg-academic-navy text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              AssignmentReady Formatted (.docx)
-            </button>
-          </div>
         </div>
 
-        {/* Document Visualizer Window */}
-        <div className="bg-white rounded-2xl border border-slate-300 shadow-xl overflow-hidden max-w-3xl mx-auto">
-          {/* Top Window Bar */}
-          <div className="bg-slate-100 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-slate-300" />
-              <div className="w-3 h-3 rounded-full bg-slate-300" />
-              <div className="w-3 h-3 rounded-full bg-slate-300" />
-              <span className="text-xs text-slate-500 font-mono ml-2">
-                {activeTab === 'unformatted'
-                  ? 'draft_output.txt (Inconsistent Styles)'
-                  : 'Final_Assignment_Submission.docx (Formatted)'}
-              </span>
-            </div>
-            <span
-              className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                activeTab === 'unformatted'
-                  ? 'bg-rose-100 text-rose-800'
-                  : 'bg-emerald-100 text-emerald-800'
-              }`}
-            >
-              {activeTab === 'unformatted' ? 'Non-Compliant' : '100% University Compliant'}
-            </span>
-          </div>
-
-          {/* Document Content Simulation */}
-          <div className="p-8 sm:p-12 min-h-[420px] bg-white text-slate-800 font-serif">
-            {activeTab === 'unformatted' ? (
-              <div className="space-y-4 font-sans text-xs text-slate-700">
-                <div className="text-base font-bold text-slate-900">
-                  # Distributed Ledger Consensus
-                </div>
-                <p className="leading-normal text-slate-600">
-                  Distributed ledgers provide immutable records across untrusted networks. While traditional databases use central coordinators, Byzantine fault tolerant systems require consensus among peers...
-                </p>
-                <div className="font-bold text-sm text-slate-900">## 2. Methodology</div>
-                <p className="leading-normal text-slate-600">
-                  We simulated three algorithms with 100 node clusters. The results are summarized below without standard captions or table styling:
-                </p>
-                <div className="p-2 border border-slate-300 font-mono text-[11px] bg-slate-50">
-                  Algorithm | Latency | Throughput
-                  Raft | 12ms | 4500 tx/s
-                  PBFT | 38ms | 1800 tx/s
-                </div>
-                <div className="font-bold text-sm text-slate-900">## 3. Conclusion</div>
-                <p className="leading-normal text-slate-600">
-                  Raft demonstrates significantly higher throughput under low churn conditions.
-                </p>
-                <div className="mt-4 p-3 rounded bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-sans">
-                  ⚠️ Deficiencies: Missing cover page, 1.0 line spacing, no page numbering, missing bibliography, raw markdown hashtags.
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Academic Header */}
-                <div className="text-center border-b border-slate-200 pb-4 font-sans">
-                  <span className="text-[11px] font-bold tracking-widest text-slate-600 uppercase block">
-                    Department of Computer Science
-                  </span>
-                  <h3 className="text-xl font-bold text-academic-navy mt-1">
-                    Distributed Ledger Consensus: A Comparative Analysis
-                  </h3>
-                  <div className="text-xs text-slate-500 mt-1 flex items-center justify-center gap-3">
-                    <span>CS-401 Advanced Systems</span>
-                    <span>•</span>
-                    <span>Student ID: 2024-CS-0912</span>
-                    <span>•</span>
-                    <span>Submission: October 2026</span>
-                  </div>
-                </div>
-
-                {/* Body Content with 1.5 spacing and proper typography */}
-                <div className="space-y-4 text-xs leading-[1.7] text-slate-800">
-                  <h4 className="text-sm font-bold text-academic-navy font-sans tracking-tight">
-                    1. Introduction & Theoretical Foundations
-                  </h4>
-                  <p>
-                    Distributed ledgers provide verifiable and tamper-evident transaction logs across decoupled asynchronous networks. While centralized architectures utilize leader-elected coordinators, fault-tolerant protocols enforce atomic commitment across decentralized peer groups.
-                  </p>
-
-                  <h4 className="text-sm font-bold text-academic-navy font-sans tracking-tight">
-                    2. Empirical Benchmark Methodology
-                  </h4>
-                  <p>
-                    A cluster of one hundred participating nodes was instantiated to benchmark round-trip consensus latency and transaction throughput:
-                  </p>
-
-                  {/* Formatted Table */}
-                  <table className="w-full text-left text-[11px] border border-slate-200 font-sans mt-2">
-                    <thead className="bg-slate-100 font-bold text-slate-800">
-                      <tr>
-                        <th className="p-2 border-b border-slate-200">Consensus Protocol</th>
-                        <th className="p-2 border-b border-slate-200 text-center">Round Latency</th>
-                        <th className="p-2 border-b border-slate-200 text-center">Throughput (tx/s)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      <tr>
-                        <td className="p-2 font-medium">Raft Consensus</td>
-                        <td className="p-2 text-center">12.4 ms</td>
-                        <td className="p-2 text-center">4,520</td>
-                      </tr>
-                      <tr>
-                        <td className="p-2 font-medium">Practical Byzantine Fault Tolerance</td>
-                        <td className="p-2 text-center">38.1 ms</td>
-                        <td className="p-2 text-center">1,810</td>
-                      </tr>
-                    </tbody>
-                  </table>
-
-                  {/* Page Footer Simulation */}
-                  <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 font-sans">
-                    <span>CS-401 • Final Assignment</span>
-                    <span>Page 1 of 6</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <UniversalUploadCenter
+          onStartAssignmentFormatting={(file) => onStartFormatting(file)}
+          onOpenPresentationWorkspace={(file) => onCreatePresentation(file)}
+        />
       </section>
 
-      {/* Feature Pillars */}
+      {/* ==================================================== */}
+      {/* FEATURE PILLARS */}
+      {/* ==================================================== */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-16">
+        <div className="text-center max-w-2xl mx-auto mb-14">
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            Engineered Specifically for University Standards
+            Engineered Specifically for Academic Standards
           </h2>
           <p className="text-sm text-slate-600 mt-2">
-            Every feature addresses a real academic grading requirement without relying on third-party AI tokens.
+            Every feature is designed to ensure strict compliance with institutional guidelines and faculty rubrics.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Feature 1 */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-academic-blue flex items-center justify-center font-bold">
-              <Sliders className="w-5 h-5" />
+          <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs hover:shadow-md transition-shadow">
+            <div className="w-12 h-12 rounded-xl bg-blue-50 text-academic-blue flex items-center justify-center mb-4">
+              <Sliders className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">Typographic Precision</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Enforce Times New Roman, Arial, or Calibri with 1.5 or double line spacing, first-line indents, and custom margin bindings without breaking inline figures or math.
+            <h3 className="text-base font-bold text-slate-900 mb-2">
+              Typographic Precision
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed mb-4">
+              Configures exact font families (Times New Roman, Arial, Calibri), point sizes, 1.5/2.0 line spacing, paragraph space-after, and 1-inch margins.
             </p>
+            <ul className="text-xs text-slate-500 space-y-1.5">
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-academic-blue" />
+                <span>Distinct H1, H2, H3 hierarchy</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-academic-blue" />
+                <span>Automatic page break on major headings</span>
+              </li>
+            </ul>
           </div>
 
           {/* Feature 2 */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-academic-blue flex items-center justify-center font-bold">
-              <FileCheck2 className="w-5 h-5" />
+          <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs hover:shadow-md transition-shadow">
+            <div className="w-12 h-12 rounded-xl bg-teal-50 text-academic-teal flex items-center justify-center mb-4">
+              <Presentation className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">Faculty Cover Sheets</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Inject clean academic title pages or substitute student metadata into your department's official .docx template with unlinked headers that suppress cover page numbers.
+            <h3 className="text-base font-bold text-slate-900 mb-2">
+              PowerPoint Presentation Decks
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed mb-4">
+              Automatically transform assignment reports into editable 16:9 widescreen PowerPoint slides with 5 academic themes, bullet points, and card layouts.
             </p>
+            <ul className="text-xs text-slate-500 space-y-1.5">
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-academic-teal" />
+                <span>Academic Classic & Modern Minimal</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-academic-teal" />
+                <span>Editable in PowerPoint, Keynote & Google Slides</span>
+              </li>
+            </ul>
           </div>
 
           {/* Feature 3 */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-academic-blue flex items-center justify-center font-bold">
-              <FileSpreadsheet className="w-5 h-5" />
+          <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs hover:shadow-md transition-shadow">
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 text-academic-indigo flex items-center justify-center mb-4">
+              <Layers className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">Official Marking Schemes</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Attach grading criteria tables with component weights and marks allocations so examiners can score assignments directly against university descriptors.
+            <h3 className="text-base font-bold text-slate-900 mb-2">
+              Official Cover Page Replacement
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed mb-4">
+              Upload your official university cover page template (.docx) or generate a clean institutional title page without disturbing existing body text.
             </p>
+            <ul className="text-xs text-slate-500 space-y-1.5">
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-academic-indigo" />
+                <span>Course code, module & lecturer metadata</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-academic-indigo" />
+                <span>Replaces raw AI title pages cleanly</span>
+              </li>
+            </ul>
           </div>
 
           {/* Feature 4 */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-academic-blue flex items-center justify-center font-bold">
-              <Layers className="w-5 h-5" />
+          <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs hover:shadow-md transition-shadow">
+            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
+              <FileSpreadsheet className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">Heading Page Breaks</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Automatically start major Level 1 headings on new pages while keeping subheadings glued to their subsequent paragraphs to eliminate dangling titles.
+            <h3 className="text-base font-bold text-slate-900 mb-2">
+              Marking Scheme & Rubrics
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed mb-4">
+              Extract assessment criteria from PDF/DOCX guidelines or attach a structured marking rubric table directly into the document for assessor feedback.
             </p>
+            <ul className="text-xs text-slate-500 space-y-1.5">
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" />
+                <span>Criteria weights & maximum mark breakdown</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" />
+                <span>Configurable rubric placement</span>
+              </li>
+            </ul>
           </div>
 
           {/* Feature 5 */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-academic-blue flex items-center justify-center font-bold">
-              <FileText className="w-5 h-5" />
+          <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs hover:shadow-md transition-shadow">
+            <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-4">
+              <FileText className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">Word TOC & Numbering</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Inject genuine OpenXML dynamic Table of Contents and PAGE fields configured with Roman front matter and Arabic numbers starting at the Introduction.
+            <h3 className="text-base font-bold text-slate-900 mb-2">
+              Section-Aware Page Numbering
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed mb-4">
+              Real Word XML field codes (PAGE / NUMPAGES). Hides numbers on the cover page, uses Roman numerals (i, ii, iii) on prelims, and restarts Arabic numerals (1, 2, 3) at the Introduction.
             </p>
+            <ul className="text-xs text-slate-500 space-y-1.5">
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-purple-600" />
+                <span>Dynamic Table of Contents (TOC)</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-purple-600" />
+                <span>Automatic section breaks</span>
+              </li>
+            </ul>
           </div>
 
           {/* Feature 6 */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-academic-blue flex items-center justify-center font-bold">
-              <ShieldCheck className="w-5 h-5" />
+          <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs hover:shadow-md transition-shadow">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
+              <FileCheck2 className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">Deterministic Compliance</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Instant rule-based audit validating font sizes, heading hierarchies, required sections (Intro, Conclusion, References), and margin tolerances.
+            <h3 className="text-base font-bold text-slate-900 mb-2">
+              Academic Compliance Auditor
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed mb-4">
+              Evaluates margins, fonts, line spacing, heading levels, and mandatory sections (Introduction, Conclusion, References) with deterministic scoring.
             </p>
+            <ul className="text-xs text-slate-500 space-y-1.5">
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Clear pass/fail and warning breakdown</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Actionable remediation guidance</span>
+              </li>
+            </ul>
           </div>
         </div>
       </section>
 
-      {/* Privacy by Design Commitment */}
+      {/* ==================================================== */}
+      {/* PRIVACY & LOCAL PROCESSING SECTION */}
+      {/* ==================================================== */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-slate-900 text-white rounded-3xl p-8 sm:p-12 shadow-xl border border-slate-800">
-          <div className="flex items-center gap-3 mb-4 text-emerald-400">
-            <Lock className="w-6 h-6" />
-            <h3 className="text-lg font-bold tracking-tight text-white">
-              Privacy by Design & Academic Security
+        <div className="p-8 sm:p-10 rounded-2xl bg-slate-900 text-white shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-academic-teal/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-academic-teal/20 text-academic-teal flex items-center justify-center border border-academic-teal/30">
+              <Lock className="w-5 h-5" />
+            </div>
+            <h3 className="text-xl font-bold tracking-tight">
+              Privacy by Design • Zero AI Reselling
             </h3>
           </div>
-          <p className="text-sm text-slate-300 leading-relaxed">
-            Your coursework is private intellectual property. AssignmentReady processes files on an isolated, temporary workspace:
+          <p className="text-sm text-slate-300 leading-relaxed max-w-2xl">
+            We understand that university assignments represent your proprietary intellectual property. AssignmentReady processes files through deterministic local OpenXML algorithms. No document content is ever indexed, stored permanently, or used for AI training.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6 pt-6 border-t border-slate-800 text-xs text-slate-300">
-            <div>
-              <strong className="block text-white font-semibold mb-1">Zero AI Scraping</strong>
-              We do not transmit your documents to OpenAI, Google Gemini, or third-party LLMs.
-            </div>
-            <div>
-              <strong className="block text-white font-semibold mb-1">1-Hour Auto-Purge</strong>
-              Uploaded and generated files are automatically deleted from server memory within 60 minutes.
-            </div>
-            <div>
-              <strong className="block text-white font-semibold mb-1">Local Browser Profiles</strong>
-              Saved institution presets reside exclusively in your browser's local storage.
-            </div>
+          <div className="mt-6 flex flex-wrap gap-6 text-xs text-slate-400 font-medium">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              100% Free Open-Source Architecture
+            </span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              Automatic 1-Hour File Purge
+            </span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              No Tracking or Third-Party Analytics
+            </span>
           </div>
         </div>
       </section>
 
-      {/* Closing Call to Action */}
-      <section className="text-center max-w-2xl mx-auto px-4 pb-12">
-        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-          Ready to Format Your Assignment?
-        </h2>
-        <p className="text-sm text-slate-600 mt-2 mb-6">
-          No signups, no credit cards, no subscriptions. Upload your Word document and download a compliant academic submission in seconds.
-        </p>
-        <button
-          type="button"
-          onClick={onStartFormatting}
-          className="inline-flex items-center gap-2 px-8 py-3.5 text-base font-bold text-white bg-academic-navy hover:bg-academic-indigo rounded-xl shadow-md transition-all hover:scale-[1.02]"
-        >
-          <span>Start Formatting Now</span>
-          <ArrowRight className="w-5 h-5" />
-        </button>
+      {/* ==================================================== */}
+      {/* FINAL CTA BANNER */}
+      {/* ==================================================== */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center pb-8">
+        <div className="p-10 rounded-3xl bg-gradient-to-br from-academic-navy via-slate-900 to-academic-dark text-white shadow-2xl">
+          <span className="text-xs font-bold text-academic-teal uppercase tracking-widest block mb-2">
+            Get Ready to Submit
+          </span>
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+            Stop Fighting Microsoft Word Formatting.
+          </h2>
+          <p className="text-sm text-slate-300 max-w-lg mx-auto mt-3 mb-8 leading-relaxed">
+            Upload your draft, select your university requirements, and get a compliant submission in seconds.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button
+              onClick={() => onStartFormatting()}
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-slate-900 bg-white hover:bg-slate-100 shadow-md transition-all text-sm"
+            >
+              Start Formatting Now
+            </button>
+            <button
+              onClick={() => onCreatePresentation()}
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-white bg-academic-teal hover:bg-academic-teal-dark shadow-md transition-all text-sm"
+            >
+              Create a Presentation
+            </button>
+          </div>
+        </div>
       </section>
     </div>
   );

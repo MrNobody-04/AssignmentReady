@@ -33,9 +33,14 @@ export const DownloadStep: React.FC<DownloadStepProps> = ({
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
+  const [customFilename, setCustomFilename] = useState(() => {
+    const stem = originalFilename.substring(0, originalFilename.lastIndexOf('.')) || originalFilename;
+    return `${stem}_Formatted`;
+  });
 
-  const docxDownloadUrl = api.getDownloadUrl(jobId, 'docx');
-  const pdfDownloadUrl = api.getDownloadUrl(jobId, 'pdf');
+  const safeFilename = customFilename.trim() || 'assignment_Formatted';
+  const docxDownloadUrl = `/api/jobs/${jobId}/download?filename=${encodeURIComponent(safeFilename)}`;
+  const pdfDownloadUrl = `/api/jobs/${jobId}/download-pdf?filename=${encodeURIComponent(safeFilename)}`;
 
   const handleDelete = async () => {
     if (!window.confirm('Delete all temporary files for this assignment from the server now?')) {
@@ -66,8 +71,27 @@ export const DownloadStep: React.FC<DownloadStepProps> = ({
           OpenXML typography, institutional margins, section breaks, cover pages, and dynamic page numbers have been applied while preserving your original manuscript content.
         </p>
 
+        {/* Custom Output Filename Input */}
+        <div className="mt-6 max-w-md mx-auto text-left">
+          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+            Output File Name:
+          </label>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="text"
+              value={customFilename}
+              onChange={(e) => setCustomFilename(e.target.value)}
+              placeholder="e.g. CS101_Assignment_Final"
+              className="flex-1 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-academic-teal bg-white"
+            />
+            <span className="px-2.5 py-2 text-xs font-semibold text-slate-500 bg-slate-200/80 rounded-lg">
+              .docx / .pdf
+            </span>
+          </div>
+        </div>
+
         {/* Download Action Buttons */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
           <a
             href={docxDownloadUrl}
             download

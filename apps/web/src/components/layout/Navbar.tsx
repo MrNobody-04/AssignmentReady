@@ -1,9 +1,10 @@
 import React from 'react';
-import { GraduationCap, BookOpen, ShieldCheck, Settings } from 'lucide-react';
+import { GraduationCap, BookOpen, ShieldCheck, Settings, Presentation, FileType } from 'lucide-react';
+import { AppView } from '../../types';
 
 interface NavbarProps {
-  currentView: 'landing' | 'workspace';
-  onNavigate: (view: 'landing' | 'workspace') => void;
+  currentView: AppView;
+  onNavigate: (view: AppView) => void;
   onOpenProfiles: () => void;
 }
 
@@ -21,10 +22,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenP
           </div>
           <div>
             <span className="font-bold text-lg text-slate-900 tracking-tight block">
-              Assignment<span className="text-academic-blue">Ready</span>
+              Assignment<span className="text-academic-teal">Ready</span>
             </span>
             <span className="text-xs text-slate-500 font-medium block">
-              University Formatting Engine
+              Academic Formatter & Converter
             </span>
           </div>
         </button>
@@ -34,7 +35,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenP
           <button
             onClick={() => onNavigate('landing')}
             className={`transition-colors hover:text-slate-900 ${
-              currentView === 'landing' ? 'text-academic-navy font-semibold' : ''
+              currentView === 'landing' ? 'text-academic-navy font-bold' : ''
             }`}
           >
             Overview
@@ -42,16 +43,34 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenP
           <button
             onClick={() => onNavigate('workspace')}
             className={`transition-colors hover:text-slate-900 ${
-              currentView === 'workspace' ? 'text-academic-navy font-semibold' : ''
+              currentView === 'workspace' ? 'text-academic-navy font-bold' : ''
             }`}
           >
-            Workspace
+            Assignment Formatter
+          </button>
+          <button
+            onClick={() => onNavigate('presentation')}
+            className={`flex items-center gap-1.5 transition-colors hover:text-slate-900 ${
+              currentView === 'presentation' ? 'text-academic-teal font-bold' : ''
+            }`}
+          >
+            <Presentation className="w-4 h-4 text-academic-teal" />
+            <span>PowerPoint Decks</span>
+          </button>
+          <button
+            onClick={() => onNavigate('converter')}
+            className={`flex items-center gap-1.5 transition-colors hover:text-slate-900 ${
+              currentView === 'converter' ? 'text-academic-blue font-bold' : ''
+            }`}
+          >
+            <FileType className="w-4 h-4 text-academic-blue" />
+            <span>File Converter</span>
           </button>
           <button
             onClick={onOpenProfiles}
             className="flex items-center gap-1.5 transition-colors hover:text-slate-900 text-slate-600"
           >
-            <BookOpen className="w-4 h-4 text-academic-blue" />
+            <BookOpen className="w-4 h-4 text-indigo-500" />
             <span>College Profiles</span>
           </button>
         </nav>
@@ -71,7 +90,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenP
               onClick={() => onNavigate('workspace')}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-academic-navy hover:bg-academic-indigo rounded-lg shadow-sm transition-colors"
             >
-              <span>Format My Assignment</span>
+              <span>Start Formatting</span>
             </button>
           ) : (
             <div className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200">

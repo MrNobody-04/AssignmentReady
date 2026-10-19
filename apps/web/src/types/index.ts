@@ -159,3 +159,59 @@ export interface CollegeProfile {
   settings: FormattingSettings;
   is_builtin?: boolean;
 }
+
+export interface SlideItem {
+  title: string;
+  category?: string;
+  bullets: string[];
+  notes?: string;
+  slide_type?: 'title' | 'content' | 'two_column' | 'conclusion';
+}
+
+export interface PresentationOutline {
+  title: string;
+  subtitle: string;
+  author: string;
+  institution: string;
+  slides: SlideItem[];
+}
+
+export interface PresentationThemeInfo {
+  id: string;
+  name: string;
+  description: string;
+  is_dark: boolean;
+  primary_color: string;
+  accent_color: string;
+  font_title: string;
+}
+
+export interface ConversionOption {
+  target_format: string;
+  target_label: string;
+  extension: string;
+  mime_type: string;
+  available: boolean;
+  description: string;
+}
+
+export interface InputFormatInfo {
+  format_key: string;
+  label: string;
+  extensions: string[];
+  mime_types: string[];
+  allowed_outputs: ConversionOption[];
+}
+
+export interface ConversionResult {
+  conversion_id: string;
+  original_filename: string;
+  detected_format: string;
+  target_format: string;
+  output_filename: string;
+  size_bytes: number;
+  download_url: string;
+}
+
+export type AppView = 'landing' | 'workspace' | 'presentation' | 'converter';
+

@@ -26,6 +26,9 @@ from src.modules.jobs.job_schema import (
 )
 from src.modules.jobs.job_manager import job_manager
 from src.modules.documents.inspector import inspect_docx
+from src.modules.converters.conversion_controller import router as conversion_router
+from src.modules.presentation.presentation_controller import router as presentation_router
+from src.modules.converters.universal_converter import sanitize_output_filename
 
 app = FastAPI(
     title=config.app_name,
@@ -41,6 +44,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(conversion_router)
+app.include_router(presentation_router)
 
 # Exception Handlers
 app.add_exception_handler(AppError, app_error_handler)
@@ -202,7 +208,7 @@ async def get_compliance_report(job_id: str):
     return record.compliance
 
 @app.get("/api/jobs/{job_id}/download")
-async def download_formatted_document(job_id: str):
+async def download_formatted_document(job_id: str, filename: str | None = None):
     validate_uuid(job_id)
     job_dir = get_job_directory(job_id)
     fmt_file = job_dir / "formatted.docx"
@@ -215,7 +221,7 @@ async def download_formatted_document(job_id: str):
 
     record = job_manager.get_job(job_id)
     base_name = Path(record.original_filename).stem
-    download_name = f"{base_name}_Formatted.docx"
+    download_name = sanitize_output_filename(filename or "", f"{base_name}_Formatted", ".docx")
 
     return FileResponse(
         path=str(fmt_file),
@@ -224,7 +230,7 @@ async def download_formatted_document(job_id: str):
     )
 
 @app.get("/api/jobs/{job_id}/download-pdf")
-async def download_pdf_document(job_id: str):
+async def download_pdf_document(job_id: str, filename: str | None = None):
     validate_uuid(job_id)
     job_dir = get_job_directory(job_id)
     pdf_file = job_dir / "formatted.pdf"
@@ -236,7 +242,7 @@ async def download_pdf_document(job_id: str):
 
     record = job_manager.get_job(job_id)
     base_name = Path(record.original_filename).stem
-    download_name = f"{base_name}_Formatted.pdf"
+    download_name = sanitize_output_filename(filename or "", f"{base_name}_Formatted", ".pdf")
 
     return FileResponse(
         path=str(pdf_file),
