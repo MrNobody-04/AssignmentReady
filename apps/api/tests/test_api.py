@@ -144,3 +144,24 @@ def test_direct_upload_alias_and_conversion_registry():
     # Clean up
     client.delete(f"/api/jobs/{data['job_id']}")
 
+def test_upload_pdf_disguised_as_docx():
+    import pypdf
+    # Create simple PDF in memory
+    writer = pypdf.PdfWriter()
+    writer.add_blank_page(width=612, height=792)
+    pdf_bytes = io.BytesIO()
+    writer.write(pdf_bytes)
+    pdf_bytes.seek(0)
+
+    # Upload PDF with .docx extension (simulating user upload)
+    files = {"file": ("Book_Review.docx", pdf_bytes.getvalue(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")}
+    res = client.post("/api/jobs/upload", files=files)
+    assert res.status_code == 200
+    data = res.json()
+    assert "job_id" in data
+    assert data["inspection"] is not None
+
+    # Clean up
+    client.delete(f"/api/jobs/{data['job_id']}")
+
+

@@ -74,14 +74,29 @@ async def upload_assignment(file: UploadFile = File(...)):
     raw_filename = file.filename or "assignment.docx"
     safe_filename = sanitize_filename(raw_filename)
 
-    if not safe_filename.lower().endswith(".docx"):
-        raise FileValidationError(f"Only Microsoft Word (.docx) documents are supported. Received '{raw_filename}'")
-
     content = await file.read()
     if len(content) > config.max_upload_size_bytes:
         raise FileValidationError(f"File exceeds maximum allowed size of 25MB (Received {len(content) / (1024*1024):.1f}MB)")
 
-    validate_docx_bytes(content, safe_filename)
+    # Auto-detect format & auto-convert PDF or plain text files uploaded as assignment
+    if content.startswith(b"%PDF-") or raw_filename.lower().endswith(".pdf"):
+        from src.modules.converters.universal_converter import convert_pdf_to_docx
+        content = convert_pdf_to_docx(content)
+        if not safe_filename.lower().endswith(".docx"):
+            safe_filename = f"{Path(safe_filename).stem}.docx"
+    elif content.startswith(b"PK\x03\x04"):
+        validate_docx_bytes(content, safe_filename)
+    elif not content.startswith(b"\x00") and len(content) > 0:
+        try:
+            text_str = content.decode("utf-8")
+            from src.modules.converters.universal_converter import convert_txt_to_docx
+            content = convert_txt_to_docx(text_str)
+            if not safe_filename.lower().endswith(".docx"):
+                safe_filename = f"{Path(safe_filename).stem}.docx"
+        except UnicodeDecodeError:
+            validate_docx_bytes(content, safe_filename)
+    else:
+        validate_docx_bytes(content, safe_filename)
 
     job_id = str(uuid.uuid4())
     job_dir = get_job_directory(job_id, create=True)

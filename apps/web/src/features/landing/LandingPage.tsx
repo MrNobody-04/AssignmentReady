@@ -5,12 +5,10 @@ import {
   FileCheck2,
   FileSpreadsheet,
   Layers,
-  Lock,
   CheckCircle2,
   Sliders,
   FileText,
   Presentation,
-  ShieldCheck,
 } from 'lucide-react';
 import { HeroShowcase } from './components/HeroShowcase';
 import { UniversalUploadCenter } from '../converters/UniversalUploadCenter';
@@ -180,23 +178,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </ScrollReveal>
 
-          {/* Trust Badges */}
+          {/* Sleek, Unified Glassmorphic Metadata Bar */}
           <ScrollReveal delay={400}>
-            <div className="mt-10 mb-8 pt-6 border-t border-slate-200/70 grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center lg:justify-center gap-3 sm:gap-4 max-w-4xl mx-auto">
-              <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-600 bg-white/80 border border-slate-200/80 px-3.5 py-2 rounded-full shadow-2xs whitespace-nowrap justify-center sm:justify-start lg:justify-center">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="mt-8 mb-4 flex items-center justify-center">
+              <div className="inline-flex flex-wrap items-center justify-center gap-y-2 gap-x-3 px-5 py-2.5 rounded-full bg-slate-100/80 border border-slate-200/80 text-xs font-medium text-slate-600 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
                 <span>Zero Paid AI APIs</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-600 bg-white/80 border border-slate-200/80 px-3.5 py-2 rounded-full shadow-2xs whitespace-nowrap justify-center sm:justify-start lg:justify-center">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="text-slate-300 select-none">•</span>
                 <span>No Account Required</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-600 bg-white/80 border border-slate-200/80 px-3.5 py-2 rounded-full shadow-2xs whitespace-nowrap justify-center sm:justify-start lg:justify-center">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="text-slate-300 select-none">•</span>
                 <span>Authentic Word XML Fields</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-600 bg-white/80 border border-slate-200/80 px-3.5 py-2 rounded-full shadow-2xs whitespace-nowrap justify-center sm:justify-start lg:justify-center">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="text-slate-300 select-none">•</span>
                 <span>1-Hour Automatic Cleanup</span>
               </div>
             </div>
@@ -311,36 +303,37 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ==================================================== */}
-      {/* PRIVACY & LOCAL PROCESSING SECTION */}
+      {/* DATA SOVEREIGNTY & PRIVACY BENTO STRIP */}
       {/* ==================================================== */}
-      <section id="privacy" className="scroll-mt-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="privacy" className="scroll-mt-24 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal delay={0}>
-          <div className="p-8 sm:p-10 rounded-2xl bg-slate-900 text-white shadow-xl relative overflow-hidden border border-slate-800">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
-                <Lock className="w-5 h-5" />
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-8 sm:p-10 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+            <div className="max-w-xl">
+              <div className="text-xs font-semibold tracking-wider text-indigo-600 uppercase mb-2">
+                Data Sovereignty & Privacy
               </div>
-              <h3 className="text-xl font-bold tracking-tight">
-                Privacy by Design • Zero AI Reselling
+              <h3 className="text-2xl font-bold text-slate-900 tracking-tight">
+                Privacy by Design. Zero AI Reselling.
               </h3>
+              <p className="mt-3 text-sm text-slate-600 leading-relaxed">
+                We understand that university assignments represent your proprietary intellectual property. AssignmentReady processes files through deterministic local OpenXML algorithms. No document content is ever indexed, stored permanently, or used for AI training.
+              </p>
             </div>
-            <p className="text-sm text-slate-300 leading-relaxed max-w-2xl">
-              We understand that university assignments represent your proprietary intellectual property. AssignmentReady processes files through deterministic local OpenXML algorithms. No document content is ever indexed, stored permanently, or used for AI training.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-6 text-xs text-slate-400 font-medium">
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                100% Free Open-Source Architecture
-              </span>
-              <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                Automatic 1-Hour File Purge
-              </span>
-              <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                No Tracking or Third-Party Analytics
-              </span>
+
+            {/* 3 Minimal Icon-Free Metric Pills */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full md:w-auto shrink-0">
+              <div className="bg-slate-50 border border-slate-200/80 rounded-xl px-5 py-4 text-center min-w-[120px]">
+                <div className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">0%</div>
+                <div className="text-xs text-slate-500 font-medium mt-0.5 whitespace-nowrap">AI Training</div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200/80 rounded-xl px-5 py-4 text-center min-w-[120px]">
+                <div className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">60 Min</div>
+                <div className="text-xs text-slate-500 font-medium mt-0.5 whitespace-nowrap">Auto Purge</div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200/80 rounded-xl px-5 py-4 text-center min-w-[120px]">
+                <div className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">100%</div>
+                <div className="text-xs text-slate-500 font-medium mt-0.5 whitespace-nowrap">Local XML</div>
+              </div>
             </div>
           </div>
         </ScrollReveal>
@@ -349,13 +342,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* ==================================================== */}
       {/* FINAL CTA BANNER */}
       {/* ==================================================== */}
-      <section className="scroll-mt-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center pb-8">
+      <section className="scroll-mt-24 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 my-16 sm:my-24">
         <ScrollReveal delay={0}>
-          <div className="p-10 rounded-3xl bg-gradient-to-br from-slate-900 via-academic-navy to-slate-950 text-white shadow-2xl border border-slate-800/80">
+          <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 px-6 py-14 sm:px-12 sm:py-16 text-center shadow-xl border border-indigo-500/20 relative overflow-hidden">
             <div className="tracking-widest text-xs font-bold text-indigo-400 uppercase mb-2">
               Get Ready to Submit
             </div>
-            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
               Stop Fighting Microsoft Word Formatting.
             </h2>
             <p className="text-sm text-slate-300 max-w-lg mx-auto mt-3 mb-8 leading-relaxed">
@@ -363,14 +356,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
+                type="button"
                 onClick={() => onStartFormatting()}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-slate-900 bg-white hover:bg-slate-100 shadow-md transition-all text-sm duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-slate-900 bg-white hover:bg-slate-100 shadow-md transition-all text-sm duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0"
               >
                 Start Formatting Now
               </button>
               <button
+                type="button"
                 onClick={() => onCreatePresentation()}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 shadow-md transition-all text-sm duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 shadow-md transition-all text-sm duration-200 hover:-translate-y-0.5 active:translate-y-0"
               >
                 Create a Presentation
               </button>

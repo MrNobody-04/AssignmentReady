@@ -69,9 +69,10 @@ export const UploadStep: React.FC<UploadStepProps> = ({
 
   const processAssignmentFile = async (file: File) => {
     setErrorMessage(null);
-    if (!file.name.toLowerCase().endsWith('.docx')) {
+    const lowerName = file.name.toLowerCase();
+    if (!lowerName.endsWith('.docx') && !lowerName.endsWith('.pdf')) {
       setErrorMessage(
-        'Please upload a valid Microsoft Word (.docx) document. PDF files are not directly editable as assignment manuscripts.'
+        'Please upload a valid Microsoft Word (.docx) or PDF document.'
       );
       return;
     }
@@ -185,7 +186,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
             <input
               ref={assignmentInputRef}
               type="file"
-              accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              accept=".docx,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
               onChange={handleAssignmentSelect}
               className="hidden"
             />
@@ -246,7 +247,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
             <input
               ref={assignmentInputRef}
               type="file"
-              accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              accept=".docx,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
               onChange={handleAssignmentSelect}
               className="hidden"
             />

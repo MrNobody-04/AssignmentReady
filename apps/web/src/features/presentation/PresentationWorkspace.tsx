@@ -255,8 +255,8 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
               <ChevronLeft className="w-4 h-4" />
               <span>Back to Main Menu</span>
             </button>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-              <Presentation className="w-7 h-7 text-academic-teal" />
+            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+              <Presentation className="w-5 h-5 text-academic-teal" />
               <span>PowerPoint Presentation Generator</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -324,8 +324,8 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
                 }
               }}
             />
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-teal-50 text-academic-teal flex items-center justify-center mb-4 border border-teal-100">
-              <UploadCloud className="w-7 h-7" />
+            <div className="w-10 h-10 mx-auto rounded-xl bg-teal-50 text-academic-teal flex items-center justify-center mb-3 border border-teal-100 shadow-2xs">
+              <UploadCloud className="w-5 h-5" />
             </div>
             <h3 className="font-bold text-base text-slate-900">
               Upload Document to Convert to Presentation
@@ -660,8 +660,8 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
       {/* ==================================================== */}
       {step === 'generate' && downloadInfo && (
         <div className="max-w-xl mx-auto p-8 bg-white rounded-2xl border border-slate-200 shadow-xl text-center space-y-6">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shadow-inner">
-            <CheckCircle2 className="w-8 h-8" />
+          <div className="w-10 h-10 mx-auto rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shadow-2xs mb-3">
+            <CheckCircle2 className="w-5 h-5" />
           </div>
 
           <div>

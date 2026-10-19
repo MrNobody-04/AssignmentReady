@@ -360,8 +360,8 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
             }
           }}
         >
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4 shadow-2xs border border-indigo-100 transition-transform duration-200 group-hover:scale-105">
-            <UploadCloud className="w-8 h-8" />
+          <div className="w-10 h-10 mx-auto rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3 shadow-2xs border border-indigo-100 transition-transform duration-200 group-hover:scale-105">
+            <UploadCloud className="w-5 h-5" />
           </div>
           <h3 className="text-base font-bold text-slate-900">
             Upload Any Academic Document or File
@@ -630,7 +630,7 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
               {conversionResult && (
                 <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <div>
                       <h4 className="font-bold text-sm text-emerald-950">
                         {conversionResult.output_filename}
