@@ -9,6 +9,7 @@ import { ProfileManagerModal } from './features/profiles/ProfileManagerModal';
 import { LegalModal } from './features/legal/LegalModal';
 import { FormattingSettings, CollegeProfile, AppView } from './types';
 import { DEFAULT_FORMATTING_SETTINGS } from './lib/profiles';
+import { ScrollReveal } from './components/ui/ScrollReveal';
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>('landing');
@@ -17,11 +18,14 @@ export const App: React.FC = () => {
   const [settings, setSettings] = useState<FormattingSettings>(DEFAULT_FORMATTING_SETTINGS);
   const [presentationSourceFile, setPresentationSourceFile] = useState<File | null>(null);
 
+  const [workspaceInitialFile, setWorkspaceInitialFile] = useState<File | null>(null);
+
   const handleApplyProfile = (profile: CollegeProfile) => {
     setSettings(JSON.parse(JSON.stringify(profile.settings)));
   };
 
-  const handleStartFormatting = (_file?: File) => {
+  const handleStartFormatting = (file?: File) => {
+    if (file) setWorkspaceInitialFile(file);
     setCurrentView('workspace');
   };
 
@@ -53,6 +57,7 @@ export const App: React.FC = () => {
             settings={settings}
             onUpdateSettings={setSettings}
             onOpenProfiles={() => setIsProfilesOpen(true)}
+            initialFile={workspaceInitialFile}
           />
         )}
 
@@ -65,12 +70,12 @@ export const App: React.FC = () => {
         )}
 
         {currentView === 'converter' && (
-          <div className="py-12 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal delay={0} className="py-12 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <UniversalUploadCenter
               onStartAssignmentFormatting={handleStartFormatting}
               onOpenPresentationWorkspace={handleCreatePresentation}
             />
-          </div>
+          </ScrollReveal>
         )}
       </div>
 

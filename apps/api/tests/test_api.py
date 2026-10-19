@@ -119,3 +119,28 @@ def test_upload_and_format_workflow(tmp_path):
     # 4. Clean up
     res_del = client.delete(f"/api/jobs/{job_id}")
     assert res_del.status_code == 200
+
+def test_direct_upload_alias_and_conversion_registry():
+    # 1. Test /api/conversions/registry
+    res_reg = client.get("/api/conversions/registry")
+    assert res_reg.status_code == 200
+    assert "registry" in res_reg.json()
+
+    # 2. Test direct /api/upload alias
+    doc = docx.Document()
+    doc.add_heading("Direct Test", level=1)
+    doc.add_paragraph("Testing /api/upload alias.")
+    bio = io.BytesIO()
+    doc.save(bio)
+    bio.seek(0)
+
+    files = {"file": ("direct_upload.docx", bio.getvalue(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")}
+    res_up = client.post("/api/upload", files=files)
+    assert res_up.status_code == 200
+    data = res_up.json()
+    assert "job_id" in data
+    assert data["original_filename"] == "direct_upload.docx"
+
+    # Clean up
+    client.delete(f"/api/jobs/{data['job_id']}")
+

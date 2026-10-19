@@ -199,14 +199,14 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
       {/* Main Showcase Stage */}
       <div className="relative bg-white rounded-2xl border border-slate-200/80 border-t-2 border-t-indigo-600 shadow-xl overflow-hidden transition-all duration-500 min-h-[460px] flex flex-col justify-between">
         {/* Top Header Strip */}
-        <div className="flex items-center justify-between px-6 py-3.5 bg-slate-50/80 border-b border-slate-200/80">
-          <div className="flex items-center gap-2 text-xs">
-            <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
-            <span className="font-bold text-slate-900">Demonstration {currentScene + 1} of 5</span>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-6 py-3 bg-slate-50/80 border-b border-slate-200/80">
+          <div className="flex items-center gap-2 text-xs flex-wrap">
+            <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse shrink-0"></span>
+            <span className="font-bold text-slate-900 whitespace-nowrap">Demonstration {currentScene + 1} of 5</span>
             <span className="text-slate-300">•</span>
-            <span className="text-slate-600 font-medium">{activeMeta.tag}</span>
+            <span className="text-slate-600 font-medium whitespace-nowrap">{activeMeta.tag}</span>
           </div>
-          <span className="text-[11px] font-semibold text-slate-400 tracking-wider uppercase">
+          <span className="text-[11px] font-semibold text-slate-400 tracking-wider uppercase self-start sm:self-auto">
             Live Simulation
           </span>
         </div>
@@ -337,9 +337,9 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
           {/* ==================================================== */}
           {currentScene === 2 && (
             <div className="w-full max-w-2xl py-2 flex flex-col items-center animate-fadeIn">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full items-center">
                 {/* 1. Old Cover Page sliding away */}
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center text-center opacity-70">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center text-center opacity-70 transition-all duration-300 w-full max-w-xs mx-auto md:max-w-none">
                   <span className="text-xs font-semibold text-rose-500 mb-2">Original AI Cover</span>
                   <div className="w-full h-36 bg-white border border-dashed border-slate-300 rounded-lg p-2.5 flex flex-col justify-between text-left text-[10px] text-slate-400">
                     <div className="font-bold text-slate-600">Assignment Title</div>
@@ -351,17 +351,17 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
                   <span className="mt-2 text-[11px] text-slate-500">Missing faculty details</span>
                 </div>
 
-                {/* 2. Arrow Action */}
-                <div className="flex flex-col items-center justify-center">
-                  <div className="w-10 h-10 rounded-full bg-teal-50 text-academic-teal flex items-center justify-center font-bold">
-                    <ArrowRight className="w-5 h-5" />
+                {/* 2. Arrow Action (vertical arrow on mobile, horizontal on desktop) */}
+                <div className="flex flex-col items-center justify-center py-1">
+                  <div className="w-10 h-10 rounded-full bg-teal-50 text-academic-teal flex items-center justify-center font-bold shadow-2xs border border-teal-100">
+                    <ArrowRight className="w-5 h-5 rotate-90 md:rotate-0 transition-transform duration-300" />
                   </div>
-                  <span className="text-xs font-bold text-academic-navy mt-1">Smart Replacement</span>
+                  <span className="text-xs font-bold text-academic-navy mt-1.5 whitespace-nowrap">Smart Replacement</span>
                   <span className="text-[10px] text-slate-500 text-center">Body text remains intact</span>
                 </div>
 
                 {/* 3. Official University Template Snapped */}
-                <div className="p-4 rounded-xl bg-white border-2 border-academic-navy shadow-lg flex flex-col items-center text-center">
+                <div className="p-4 rounded-xl bg-white border-2 border-academic-navy shadow-lg flex flex-col items-center text-center transition-all duration-300 w-full max-w-xs mx-auto md:max-w-none">
                   <span className="text-xs font-bold text-academic-navy mb-2 flex items-center gap-1">
                     <Award className="w-3.5 h-3.5 text-academic-teal" />
                     Official College Cover
@@ -457,20 +457,20 @@ export const HeroShowcase: React.FC<HeroShowcaseProps> = ({
           {/* ==================================================== */}
           {currentScene === 4 && (
             <div className="w-full max-w-2xl py-2 flex flex-col animate-fadeIn">
-              <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-200">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 pb-3 border-b border-slate-200">
                 <div>
                   <h4 className="font-bold text-sm text-slate-900">Institutional Audit Protocol</h4>
                   <span className="text-xs text-slate-500">Checking submission against academic criteria</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <span className="text-xs font-bold text-slate-800 flex items-center justify-end gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                  <div className="text-left sm:text-right">
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1 sm:justify-end">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                       All Rules Passed
                     </span>
                     <span className="text-[10px] text-slate-500 block leading-tight">6 of 6 checks verified</span>
                   </div>
-                  <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="w-20 sm:w-16 h-2 bg-slate-200 rounded-full overflow-hidden shrink-0">
                     <div className="w-full h-full bg-emerald-600 rounded-full" />
                   </div>
                 </div>

@@ -33,18 +33,7 @@
   background: #94a3b8;
 }
 
-/* Subtle Architectural Grid Pattern */
-.bg-grid-pattern {
-  background-size: 24px 24px;
-  background-image: 
-    linear-gradient(to right, rgba(203, 213, 225, 0.4) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(203, 213, 225, 0.4) 1px, transparent 1px);
-}
 
-/* Subtle Radial Glow Overlay */
-.bg-radial-hero {
-  background-image: radial-gradient(circle at 50% -10%, rgba(99, 102, 241, 0.12), rgba(248, 250, 252, 0) 70%);
-}
 
 /* Animations */
 @keyframes fadeUp {
@@ -76,3 +65,30 @@
 .animate-scale-in {
   animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+/* Continuous Right-to-Left Infinite Marquee */
+@keyframes marqueeRtl {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-marquee-rtl {
+  animation: marqueeRtl 35s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-rtl:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-rtl {
+    animation: none;
+    transform: none;
+  }
+}
+

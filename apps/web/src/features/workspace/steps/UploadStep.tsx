@@ -48,6 +48,12 @@ export const UploadStep: React.FC<UploadStepProps> = ({
   const guidelinesInputRef = useRef<HTMLInputElement>(null);
   const rubricInputRef = useRef<HTMLInputElement>(null);
 
+  React.useEffect(() => {
+    if (assignmentFile && !jobId && !isUploading) {
+      processAssignmentFile(assignmentFile);
+    }
+  }, [assignmentFile, jobId]);
+
   const handleAssignmentDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {

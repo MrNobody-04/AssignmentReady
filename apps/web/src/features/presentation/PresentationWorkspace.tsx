@@ -247,52 +247,52 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fadeIn">
       {/* Top Breadcrumb & Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-8 border-b border-slate-200 gap-4">
-        <div>
-          <button
-            onClick={onBackToLanding}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 mb-2 transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span>Back to Main Menu</span>
-          </button>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-            <Presentation className="w-7 h-7 text-academic-teal" />
-            <span>PowerPoint Presentation Generator</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Transform assignment reports, research papers, and notes into editable 16:9 PowerPoint (.pptx) decks.
-          </p>
-        </div>
+          <div>
+            <button
+              onClick={onBackToLanding}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 mb-2 transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Back to Main Menu</span>
+            </button>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+              <Presentation className="w-7 h-7 text-academic-teal" />
+              <span>PowerPoint Presentation Generator</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              Transform assignment reports, research papers, and notes into editable 16:9 PowerPoint (.pptx) decks.
+            </p>
+          </div>
 
-        {/* Workflow Steps Indicator */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setStep('upload')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-              step === 'upload' ? 'bg-academic-navy text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            1. Source
-          </button>
-          <button
-            onClick={() => setStep('outline')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-              step === 'outline' ? 'bg-academic-navy text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            2. Review Outline
-          </button>
-          <button
-            onClick={() => downloadInfo && setStep('generate')}
-            disabled={!downloadInfo}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-              step === 'generate' ? 'bg-academic-teal text-white shadow-xs' : 'bg-slate-100 text-slate-400'
-            }`}
-          >
-            3. Download Deck
-          </button>
+          {/* Workflow Steps Indicator */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setStep('upload')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                step === 'upload' ? 'bg-academic-navy text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              1. Source
+            </button>
+            <button
+              onClick={() => setStep('outline')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                step === 'outline' ? 'bg-academic-navy text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              2. Review Outline
+            </button>
+            <button
+              onClick={() => downloadInfo && setStep('generate')}
+              disabled={!downloadInfo}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                step === 'generate' ? 'bg-academic-teal text-white shadow-xs' : 'bg-slate-100 text-slate-400'
+              }`}
+            >
+              3. Download Deck
+            </button>
+          </div>
         </div>
-      </div>
 
       {/* Error alert if any */}
       {errorMessage && (
@@ -301,6 +301,8 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
           <span>{errorMessage}</span>
         </div>
       )}
+
+      {/* Active Step Content */}
 
       {/* ==================================================== */}
       {/* STEP 1: UPLOAD SOURCE OR USE SAMPLE */}

@@ -42,11 +42,26 @@ export const api = {
   async uploadAssignment(file: File): Promise<{ job_id: string; filename: string; inspection: InspectionResult }> {
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetch(`${API_BASE}/upload`, {
+
+    let res = await fetch(`${API_BASE}/jobs/upload`, {
       method: 'POST',
       body: formData,
     });
-    return handleResponse(res);
+
+    // Fallback to /upload if /jobs/upload returns 404
+    if (!res.ok && res.status === 404) {
+      res = await fetch(`${API_BASE}/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+    }
+
+    const data = await handleResponse<JobStatusResponse & { filename?: string }>(res);
+    return {
+      job_id: data.job_id,
+      filename: data.original_filename || data.filename || file.name,
+      inspection: data.inspection!,
+    };
   },
 
   async uploadCoverTemplate(jobId: string, file: File): Promise<{ status: string; message: string }> {

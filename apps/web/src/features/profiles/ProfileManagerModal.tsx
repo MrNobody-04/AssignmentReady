@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { CollegeProfile, FormattingSettings } from '../../types';
 import { profilesManager } from '../../lib/profiles';
+import { ScrollReveal } from '../../components/ui/ScrollReveal';
 
 interface ProfileManagerModalProps {
   isOpen: boolean;

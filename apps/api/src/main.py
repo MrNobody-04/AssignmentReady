@@ -255,3 +255,54 @@ async def delete_job(job_id: str):
     validate_uuid(job_id)
     job_manager.delete_job(job_id)
     return {"message": "Job temporary storage deleted successfully", "job_id": job_id}
+
+# =====================================================================
+# Compatibility Endpoints for Direct /api/upload & Frontend APIs
+# =====================================================================
+
+@app.post("/api/upload", response_model=JobStatusResponse)
+async def upload_assignment_direct_alias(file: UploadFile = File(...)):
+    return await upload_assignment(file)
+
+@app.post("/api/upload/template/{job_id}")
+async def upload_cover_template_alias(job_id: str, file: UploadFile = File(...)):
+    return await upload_cover_template(job_id, file)
+
+@app.post("/api/upload/guidelines/{job_id}")
+async def upload_guidelines_alias(job_id: str, file: UploadFile = File(...)):
+    return await upload_guidelines(job_id, file)
+
+@app.post("/api/upload/marking-scheme/{job_id}")
+async def upload_rubric_alias(job_id: str, file: UploadFile = File(...)):
+    return await upload_rubric(job_id, file)
+
+@app.post("/api/inspect/{job_id}")
+async def inspect_document_alias(job_id: str):
+    validate_uuid(job_id)
+    record = job_manager.get_job(job_id)
+    return record.inspection
+
+@app.post("/api/format/{job_id}", response_model=JobStatusResponse)
+async def format_document_alias(job_id: str, settings: FormattingSettings):
+    return await format_document(job_id, settings)
+
+@app.post("/api/check-compliance/{job_id}", response_model=ComplianceReport)
+async def check_compliance_alias(job_id: str, settings: FormattingSettings):
+    validate_uuid(job_id)
+    job_dir = get_job_directory(job_id)
+    fmt_file = job_dir / "formatted.docx"
+    target_file = fmt_file if fmt_file.exists() else (job_dir / "original.docx")
+    if not target_file.exists():
+        raise HTTPException(status_code=404, detail="No document available to audit.")
+    from src.modules.documents.compliance import audit_compliance
+    report = audit_compliance(target_file, settings)
+    record = job_manager.get_job(job_id)
+    record.compliance = report
+    return report
+
+@app.get("/api/download/{job_id}")
+async def download_alias(job_id: str, format: str = "docx", filename: str | None = None):
+    if format == "pdf":
+        return await download_pdf_document(job_id, filename)
+    return await download_formatted_document(job_id, filename)
+

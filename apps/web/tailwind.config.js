@@ -24,7 +24,19 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         serif: ['Merriweather', 'Georgia', 'serif'],
-      }
+      },
+      transitionTimingFunction: {
+        'popup': 'cubic-bezier(0.22, 1, 0.36, 1)',
+      },
+      keyframes: {
+        'marquee-rtl': {
+          '0%': { transform: 'translate3d(0, 0, 0)' },
+          '100%': { transform: 'translate3d(-50%, 0, 0)' },
+        },
+      },
+      animation: {
+        'marquee-rtl': 'marquee-rtl 35s linear infinite',
+      },
     },
   },
   plugins: [],

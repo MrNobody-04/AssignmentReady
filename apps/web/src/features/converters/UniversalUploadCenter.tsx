@@ -19,11 +19,159 @@ import {
   convertUniversalFile,
 } from '../../services/api';
 import { InputFormatInfo, ConversionOption, ConversionResult } from '../../types';
+import { ScrollReveal } from '../../components/ui/ScrollReveal';
 
 interface UniversalUploadCenterProps {
   onStartAssignmentFormatting: (file: File) => void;
   onOpenPresentationWorkspace: (file?: File) => void;
 }
+
+const DEFAULT_CONVERSION_REGISTRY: Record<string, InputFormatInfo> = {
+  docx: {
+    format_key: 'docx',
+    label: 'Microsoft Word Document (.docx)',
+    extensions: ['.docx'],
+    mime_types: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    allowed_outputs: [
+      {
+        target_format: 'pptx',
+        target_label: 'PowerPoint Presentation (.pptx)',
+        extension: '.pptx',
+        mime_type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        available: true,
+        description: 'Convert document sections and key findings into structured presentation slides.',
+      },
+      {
+        target_format: 'txt',
+        target_label: 'Plain Text (.txt)',
+        extension: '.txt',
+        mime_type: 'text/plain',
+        available: true,
+        description: 'Extract all paragraph text without formatting.',
+      },
+      {
+        target_format: 'pdf',
+        target_label: 'Portable Document Format (.pdf)',
+        extension: '.pdf',
+        mime_type: 'application/pdf',
+        available: true,
+        description: 'Convert Word document to PDF.',
+      },
+    ],
+  },
+  pdf: {
+    format_key: 'pdf',
+    label: 'Portable Document Format (.pdf)',
+    extensions: ['.pdf'],
+    mime_types: ['application/pdf'],
+    allowed_outputs: [
+      {
+        target_format: 'docx',
+        target_label: 'Microsoft Word (.docx)',
+        extension: '.docx',
+        mime_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        available: true,
+        description: 'Extract text and structural sections into an editable Microsoft Word document.',
+      },
+      {
+        target_format: 'pptx',
+        target_label: 'PowerPoint Presentation (.pptx)',
+        extension: '.pptx',
+        mime_type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        available: true,
+        description: 'Synthesize key sections from the PDF into presentation slides.',
+      },
+      {
+        target_format: 'txt',
+        target_label: 'Plain Text (.txt)',
+        extension: '.txt',
+        mime_type: 'text/plain',
+        available: true,
+        description: 'Extract clean text from all pages in the PDF document.',
+      },
+    ],
+  },
+  image: {
+    format_key: 'image',
+    label: 'Images (.png, .jpg, .jpeg, .webp, .bmp, .tiff)',
+    extensions: ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tiff'],
+    mime_types: ['image/png', 'image/jpeg', 'image/webp', 'image/bmp', 'image/tiff'],
+    allowed_outputs: [
+      {
+        target_format: 'pdf',
+        target_label: 'High-Quality PDF Document (.pdf)',
+        extension: '.pdf',
+        mime_type: 'application/pdf',
+        available: true,
+        description: 'Convert image into a crisp, printable PDF document with preserved DPI.',
+      },
+      {
+        target_format: 'png',
+        target_label: 'PNG Image (.png)',
+        extension: '.png',
+        mime_type: 'image/png',
+        available: true,
+        description: 'Convert image to lossless PNG format.',
+      },
+      {
+        target_format: 'jpeg',
+        target_label: 'JPEG Image (.jpg)',
+        extension: '.jpg',
+        mime_type: 'image/jpeg',
+        available: true,
+        description: 'Convert image to compressed JPEG format.',
+      },
+    ],
+  },
+  csv: {
+    format_key: 'csv',
+    label: 'CSV Data File (.csv)',
+    extensions: ['.csv'],
+    mime_types: ['text/csv', 'application/vnd.ms-excel'],
+    allowed_outputs: [
+      {
+        target_format: 'xlsx',
+        target_label: 'Microsoft Excel Workbook (.xlsx)',
+        extension: '.xlsx',
+        mime_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        available: true,
+        description: 'Convert raw CSV into a formatted Excel spreadsheet with styled headers and auto-column widths.',
+      },
+      {
+        target_format: 'docx',
+        target_label: 'Word Table (.docx)',
+        extension: '.docx',
+        mime_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        available: true,
+        description: 'Render CSV rows and columns into an academic Word table.',
+      },
+    ],
+  },
+  txt: {
+    format_key: 'txt',
+    label: 'Plain Text File (.txt)',
+    extensions: ['.txt', '.md'],
+    mime_types: ['text/plain', 'text/markdown'],
+    allowed_outputs: [
+      {
+        target_format: 'docx',
+        target_label: 'Microsoft Word Document (.docx)',
+        extension: '.docx',
+        mime_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        available: true,
+        description: 'Convert plain text notes into a standard academic Word document.',
+      },
+      {
+        target_format: 'pptx',
+        target_label: 'PowerPoint Presentation (.pptx)',
+        extension: '.pptx',
+        mime_type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        available: true,
+        description: 'Convert bulleted or outlined text into presentation slides.',
+      },
+    ],
+  },
+};
 
 export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
   onStartAssignmentFormatting,
@@ -32,7 +180,7 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedTask, setSelectedTask] = useState<'format' | 'convert' | 'presentation'>('convert');
-  const [registry, setRegistry] = useState<Record<string, InputFormatInfo> | null>(null);
+  const [registry, setRegistry] = useState<Record<string, InputFormatInfo>>(DEFAULT_CONVERSION_REGISTRY);
   const [selectedTargetFormat, setSelectedTargetFormat] = useState<string>('');
   const [customFilename, setCustomFilename] = useState<string>('');
   const [isConverting, setIsConverting] = useState(false);
@@ -158,14 +306,16 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
   return (
     <div className="w-full max-w-4xl mx-auto p-6 md:p-8 bg-white rounded-2xl border border-slate-200/80 border-t-2 border-t-indigo-600 shadow-xl transition-all duration-300">
       {/* Header (Clean, professional, without generic blue pill) */}
-      <div className="pb-6 mb-6 border-b border-slate-200">
-        <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
-          Universal Document Center
-        </h2>
-        <p className="text-xs md:text-sm text-slate-500 mt-1">
-          Format academic assignments, convert between file types, or generate presentation decks.
-        </p>
-      </div>
+      <ScrollReveal delay={0}>
+        <div className="pb-6 mb-6 border-b border-slate-200">
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+            Universal Document Center
+          </h2>
+          <p className="text-xs md:text-sm text-slate-500 mt-1">
+            Format academic assignments, convert between file types, or generate presentation decks.
+          </p>
+        </div>
+      </ScrollReveal>
 
       {/* Hidden file input */}
       <input
@@ -184,7 +334,8 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
         }}
       />
 
-      {/* Upload Zone */}
+      <ScrollReveal delay={100} key={file ? 'file-active' : 'no-file'}>
+        {/* Upload Zone */}
       {!file ? (
         <div
           onDragOver={(e) => {
@@ -525,6 +676,7 @@ export const UniversalUploadCenter: React.FC<UniversalUploadCenterProps> = ({
           )}
         </div>
       )}
+      </ScrollReveal>
     </div>
   );
 };

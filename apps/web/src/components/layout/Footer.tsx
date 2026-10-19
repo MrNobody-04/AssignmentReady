@@ -11,6 +11,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { AppView } from '../../types';
+import { ScrollReveal } from '../ui/ScrollReveal';
 
 interface FooterProps {
   onOpenPrivacy?: () => void;
@@ -35,7 +36,7 @@ export const Footer: React.FC<FooterProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
           {/* Col 1: Brand & Mission */}
-          <div className="space-y-4">
+          <ScrollReveal delay={0} className="space-y-4">
             <div className="flex items-center gap-3">
               <img
                 src="/logo.jpg"
@@ -71,10 +72,10 @@ export const Footer: React.FC<FooterProps> = ({
                 <span>Deterministic OpenXML formatting</span>
               </div>
             </div>
-          </div>
+          </ScrollReveal>
 
           {/* Col 2: Quick Navigation */}
-          <div>
+          <ScrollReveal delay={100}>
             <h4 className="text-xs font-bold text-slate-200 uppercase tracking-widest mb-4">
               Quick Navigation
             </h4>
@@ -125,10 +126,10 @@ export const Footer: React.FC<FooterProps> = ({
                 </button>
               </li>
             </ul>
-          </div>
+          </ScrollReveal>
 
           {/* Col 3: Core Capabilities */}
-          <div>
+          <ScrollReveal delay={200}>
             <h4 className="text-xs font-bold text-slate-200 uppercase tracking-widest mb-4">
               Core Capabilities
             </h4>
@@ -158,10 +159,10 @@ export const Footer: React.FC<FooterProps> = ({
                 <span>Deterministic Compliance Auditor</span>
               </li>
             </ul>
-          </div>
+          </ScrollReveal>
 
           {/* Col 4: Academic Notice & Legal (Glassmorphic Callout) */}
-          <div>
+          <ScrollReveal delay={300}>
             <h4 className="text-xs font-bold text-slate-200 uppercase tracking-widest mb-4">
               Academic Integrity
             </h4>
@@ -188,11 +189,11 @@ export const Footer: React.FC<FooterProps> = ({
                 </button>
               </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
 
         {/* Bottom Bar with Attribution */}
-        <div className="pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
+        <ScrollReveal delay={400} className="pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
           <p className="text-center sm:text-left">
             © {currentYear} AssignmentReady. Developed by{' '}
             <span className="text-white font-semibold hover:text-indigo-400 transition-colors">
@@ -216,7 +217,7 @@ export const Footer: React.FC<FooterProps> = ({
             <span className="text-slate-600">•</span>
             <span>No Accounts Required</span>
           </div>
-        </div>
+        </ScrollReveal>
       </div>
     </footer>
   );
