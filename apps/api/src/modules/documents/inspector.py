@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 import docx
 from docx.shared import Inches, Pt
-from src.modules.jobs.job_schema import InspectionResult, DocumentStructureItem
+from src.modules.jobs.job_schema import InspectionResult, DocumentStructureItem, CaptionItem
 from src.common.errors import DocumentProcessingError
 
 COVER_KEYWORDS = [
@@ -14,6 +14,14 @@ COVER_KEYWORDS = [
 TOC_KEYWORDS = ["table of contents", "contents"]
 REF_KEYWORDS = ["references", "bibliography", "works cited"]
 RUBRIC_KEYWORDS = ["marking scheme", "marking criteria", "assessment criteria", "grading rubric", "rubric"]
+DECLARATION_KEYWORDS = ["declaration", "statement of originality", "author's declaration"]
+ACKNOWLEDGEMENT_KEYWORDS = ["acknowledgement", "acknowledgments", "acknowledging"]
+ABSTRACT_KEYWORDS = ["abstract", "executive summary"]
+LOF_KEYWORDS = ["list of figures", "table of figures"]
+LOT_KEYWORDS = ["list of tables", "table of tables"]
+
+FIGURE_REGEX = re.compile(r"^(?:Figure|Fig\.?)\s+(\d+(?:\.\d+)?)\s*[:.\-]\s*(.+)", re.IGNORECASE)
+TABLE_REGEX = re.compile(r"^Table\s+(\d+(?:\.\d+)?)\s*[:.\-]\s*(.+)", re.IGNORECASE)
 
 def inspect_docx(file_path: Path) -> InspectionResult:
     try:
@@ -24,6 +32,8 @@ def inspect_docx(file_path: Path) -> InspectionResult:
     total_paragraphs = len(doc.paragraphs)
     total_words = 0
     detected_headings: list[DocumentStructureItem] = []
+    detected_figures: list[CaptionItem] = []
+    detected_table_captions: list[CaptionItem] = []
     first_body_font: str | None = None
     first_body_size: float | None = None
 
@@ -31,6 +41,11 @@ def inspect_docx(file_path: Path) -> InspectionResult:
     has_toc = False
     has_refs = False
     has_rubric = False
+    has_declaration = False
+    has_acknowledgement = False
+    has_abstract = False
+    has_lof = False
+    has_lot = False
 
     # Check sections for margins
     margins_inches: dict[str, float] = {}
@@ -52,10 +67,38 @@ def inspect_docx(file_path: Path) -> InspectionResult:
         lower_text = text.lower()
         style_name = p.style.name if p.style else ""
 
-        # Cover page markers check in first 10 paragraphs
-        if idx < 10:
+        # Cover page markers check in first 15 paragraphs
+        if idx < 15:
             if any(kw in lower_text for kw in COVER_KEYWORDS):
                 has_cover_markers = True
+
+        # Check Figure Caption
+        fig_match = FIGURE_REGEX.match(text)
+        if fig_match:
+            fig_num = fig_match.group(1).strip()
+            fig_cap = fig_match.group(2).strip()
+            detected_figures.append(
+                CaptionItem(
+                    number=fig_num,
+                    caption=fig_cap,
+                    full_text=text,
+                    paragraph_index=idx,
+                )
+            )
+
+        # Check Table Caption
+        tbl_match = TABLE_REGEX.match(text)
+        if tbl_match:
+            tbl_num = tbl_match.group(1).strip()
+            tbl_cap = tbl_match.group(2).strip()
+            detected_table_captions.append(
+                CaptionItem(
+                    number=tbl_num,
+                    caption=tbl_cap,
+                    full_text=text,
+                    paragraph_index=idx,
+                )
+            )
 
         # Heading detection
         level = 0
@@ -84,6 +127,16 @@ def inspect_docx(file_path: Path) -> InspectionResult:
                 has_refs = True
             if any(kw in lower_text for kw in RUBRIC_KEYWORDS):
                 has_rubric = True
+            if any(kw in lower_text for kw in DECLARATION_KEYWORDS):
+                has_declaration = True
+            if any(kw in lower_text for kw in ACKNOWLEDGEMENT_KEYWORDS):
+                has_acknowledgement = True
+            if any(kw in lower_text for kw in ABSTRACT_KEYWORDS):
+                has_abstract = True
+            if any(kw in lower_text for kw in LOF_KEYWORDS):
+                has_lof = True
+            if any(kw in lower_text for kw in LOT_KEYWORDS):
+                has_lot = True
 
     # Determine dominant body font by character count
     font_char_counts: dict[str, int] = {}
@@ -125,10 +178,17 @@ def inspect_docx(file_path: Path) -> InspectionResult:
         total_tables=total_tables,
         total_images=total_images,
         detected_headings=detected_headings,
+        detected_figures=detected_figures,
+        detected_table_captions=detected_table_captions,
         detected_body_font=first_body_font or "Times New Roman",
         detected_margins_inches=margins_inches,
         has_cover_page_markers=has_cover_markers,
         has_table_of_contents=has_toc,
         has_references_section=has_refs,
         has_marking_scheme_section=has_rubric,
+        has_declaration_section=has_declaration,
+        has_acknowledgement_section=has_acknowledgement,
+        has_abstract_section=has_abstract,
+        has_list_of_figures=has_lof,
+        has_list_of_tables=has_lot,
     )

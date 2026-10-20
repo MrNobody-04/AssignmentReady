@@ -29,17 +29,30 @@ def apply_cover_page(
     if not cover_data.enabled:
         return
 
-    # If template mode and template file exists, populate placeholders
-    if cover_data.mode == "template" and template_path and template_path.exists():
-        _apply_template_cover(doc, cover_data, template_path)
-    else:
-        _apply_builtin_cover(doc, cover_data)
+    first_p = doc.paragraphs[0] if doc.paragraphs else doc.add_paragraph()
+    insert_cover_page_before(first_p, cover_data, template_path=template_path)
 
-def _apply_template_cover(doc: docx.Document, cover_data: CoverPageData, template_path: Path) -> None:
+def insert_cover_page_before(
+    target_p,
+    cover_data: CoverPageData,
+    template_path: Path | None = None
+) -> None:
+    """
+    Inserts cover page paragraphs before target_p.
+    """
+    if not cover_data.enabled:
+        return
+
+    if cover_data.mode == "template" and template_path and template_path.exists():
+        _insert_template_cover_before(target_p, cover_data, template_path)
+    else:
+        _insert_builtin_cover_before(target_p, cover_data)
+
+def _insert_template_cover_before(target_p, cover_data: CoverPageData, template_path: Path) -> None:
     try:
         tpl_doc = docx.Document(template_path)
     except Exception:
-        _apply_builtin_cover(doc, cover_data)
+        _insert_builtin_cover_before(target_p, cover_data)
         return
 
     replacements = {
@@ -77,33 +90,22 @@ def _apply_template_cover(doc: docx.Document, cover_data: CoverPageData, templat
                             if placeholder in p.text:
                                 p.text = p.text.replace(placeholder, value or "")
 
-    # Prepend template paragraphs before first paragraph
-    first_p = doc.paragraphs[0] if doc.paragraphs else doc.add_paragraph()
+    # Insert template paragraphs before target_p
     for p in tpl_doc.paragraphs:
-        new_p = first_p.insert_paragraph_before(p.text)
-        new_p.style = p.style.name if p.style and p.style.name in doc.styles else "Normal"
+        new_p = target_p.insert_paragraph_before(p.text)
         new_p.alignment = p.alignment
 
-    # Add page break after template cover
-    break_p = first_p.insert_paragraph_before()
-    break_p.paragraph_format.page_break_before = True
-
-def _apply_builtin_cover(doc: docx.Document, cover_data: CoverPageData) -> None:
-    first_p = doc.paragraphs[0] if doc.paragraphs else doc.add_paragraph()
-
-    # If replace_existing is selected and initial paragraphs look like cover page,
-    # we can clean up the leading blank / title paragraphs
-    # Build clean academic cover page elements
+def _insert_builtin_cover_before(target_p, cover_data: CoverPageData) -> None:
     inst_text = (cover_data.institution or "UNIVERSITY ACADEMIC SUBMISSION").upper()
     dept_text = cover_data.department or cover_data.course or "DEPARTMENT OF COMPUTING & INFORMATICS"
     title_text = cover_data.assignment_title or "ACADEMIC ASSIGNMENT REPORT"
     subtitle_text = cover_data.assignment_subtitle or "Formative Coursework Assessment"
 
-    p_top_space = first_p.insert_paragraph_before()
+    p_top_space = target_p.insert_paragraph_before()
     p_top_space.paragraph_format.space_before = Pt(40)
 
     # Institution
-    p_inst = first_p.insert_paragraph_before(inst_text)
+    p_inst = target_p.insert_paragraph_before(inst_text)
     p_inst.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_inst.paragraph_format.space_after = Pt(4)
     run_inst = p_inst.runs[0]
@@ -113,7 +115,7 @@ def _apply_builtin_cover(doc: docx.Document, cover_data: CoverPageData) -> None:
     run_inst.font.color.rgb = RGBColor(30, 58, 138)  # Deep Navy
 
     # Department
-    p_dept = first_p.insert_paragraph_before(dept_text)
+    p_dept = target_p.insert_paragraph_before(dept_text)
     p_dept.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_dept.paragraph_format.space_after = Pt(72)
     run_dept = p_dept.runs[0]
@@ -122,7 +124,7 @@ def _apply_builtin_cover(doc: docx.Document, cover_data: CoverPageData) -> None:
     run_dept.font.color.rgb = RGBColor(100, 116, 139)
 
     # Title
-    p_title = first_p.insert_paragraph_before(title_text)
+    p_title = target_p.insert_paragraph_before(title_text)
     p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_title.paragraph_format.space_after = Pt(8)
     run_title = p_title.runs[0]
@@ -133,7 +135,7 @@ def _apply_builtin_cover(doc: docx.Document, cover_data: CoverPageData) -> None:
 
     # Subtitle
     if subtitle_text:
-        p_sub = first_p.insert_paragraph_before(subtitle_text)
+        p_sub = target_p.insert_paragraph_before(subtitle_text)
         p_sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p_sub.paragraph_format.space_after = Pt(80)
         run_sub = p_sub.runs[0]
@@ -142,7 +144,7 @@ def _apply_builtin_cover(doc: docx.Document, cover_data: CoverPageData) -> None:
         run_sub.font.italic = True
         run_sub.font.color.rgb = RGBColor(71, 85, 105)
     else:
-        p_sub_sp = first_p.insert_paragraph_before()
+        p_sub_sp = target_p.insert_paragraph_before()
         p_sub_sp.paragraph_format.space_after = Pt(80)
 
     # Student metadata details
@@ -156,7 +158,7 @@ def _apply_builtin_cover(doc: docx.Document, cover_data: CoverPageData) -> None:
     ]
 
     for label, val in meta_items:
-        p_meta = first_p.insert_paragraph_before()
+        p_meta = target_p.insert_paragraph_before()
         p_meta.alignment = WD_ALIGN_PARAGRAPH.LEFT
         p_meta.paragraph_format.space_after = Pt(3)
         p_meta.paragraph_format.left_indent = Inches(1.0)
@@ -172,6 +174,14 @@ def _apply_builtin_cover(doc: docx.Document, cover_data: CoverPageData) -> None:
         r_val.font.size = Pt(10.5)
         r_val.font.color.rgb = RGBColor(15, 23, 42)
 
-    # Next page break for body
+def _apply_template_cover(doc: docx.Document, cover_data: CoverPageData, template_path: Path) -> None:
+    first_p = doc.paragraphs[0] if doc.paragraphs else doc.add_paragraph()
+    _insert_template_cover_before(first_p, cover_data, template_path)
+    break_p = first_p.insert_paragraph_before()
+    break_p.paragraph_format.page_break_before = True
+
+def _apply_builtin_cover(doc: docx.Document, cover_data: CoverPageData) -> None:
+    first_p = doc.paragraphs[0] if doc.paragraphs else doc.add_paragraph()
+    _insert_builtin_cover_before(first_p, cover_data)
     break_p = first_p.insert_paragraph_before()
     break_p.paragraph_format.page_break_before = True

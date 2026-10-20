@@ -142,11 +142,64 @@ def audit_compliance(file_path: Path, settings: FormattingSettings) -> Complianc
             category="Navigation",
             name="Table of Contents",
             status="PASS",
-            message="Dynamic Word Table of Contents field code is present with 3-level depth.",
-            recommendation="Remember to update field codes when viewing in Microsoft Word before final print/PDF.",
+            message="Dynamic Word Table of Contents field code is present with heading depth navigation.",
+            recommendation="",
         ))
 
-    # 7. Document Word Count & Content Insights
+    # 7. List of Figures
+    if settings.list_of_figures.enabled:
+        if inspection.detected_figures:
+            checks.append(ComplianceCheckItem(
+                id="lof-check",
+                category="Navigation",
+                name="List of Figures",
+                status="PASS",
+                message=f"List of Figures is configured with {len(inspection.detected_figures)} detected academic figure caption(s).",
+                recommendation="",
+            ))
+        elif inspection.total_images > 0:
+            checks.append(ComplianceCheckItem(
+                id="lof-check",
+                category="Navigation",
+                name="List of Figures",
+                status="WARNING",
+                message=f"Document contains {inspection.total_images} image(s) but no formal 'Figure X:' caption format was detected.",
+                recommendation="Use 'Figure 1: Title' or 'Figure 1.1: Title' for automatic indexing in the List of Figures.",
+            ))
+
+    # 8. List of Tables
+    if settings.list_of_tables.enabled:
+        if inspection.detected_table_captions:
+            checks.append(ComplianceCheckItem(
+                id="lot-check",
+                category="Navigation",
+                name="List of Tables",
+                status="PASS",
+                message=f"List of Tables is configured with {len(inspection.detected_table_captions)} detected table caption(s).",
+                recommendation="",
+            ))
+        elif inspection.total_tables > 0:
+            checks.append(ComplianceCheckItem(
+                id="lot-check",
+                category="Navigation",
+                name="List of Tables",
+                status="WARNING",
+                message=f"Document contains {inspection.total_tables} table(s) without explicit 'Table X:' captions.",
+                recommendation="Add 'Table 1: Caption' above academic data tables for automatic inclusion in the List of Tables.",
+            ))
+
+    # 9. Page Numbering & Academic Section Breaks
+    if settings.page_numbering.enabled:
+        checks.append(ComplianceCheckItem(
+            id="pagination-check",
+            category="Pagination",
+            name="Section Breaks & Page Numbering",
+            status="PASS",
+            message="Independent section breaks applied: hidden on cover page, Roman numerals on front matter, and Arabic numbering restarting at 1 on Introduction.",
+            recommendation="",
+        ))
+
+    # 10. Document Word Count & Content Insights
     if inspection.total_words < 200:
         checks.append(ComplianceCheckItem(
             id="word-count-check",

@@ -78,6 +78,48 @@ export interface TableOfContentsSettings {
   depth: number;
 }
 
+export interface DeclarationSettings {
+  enabled: boolean;
+  title: string;
+  statement: string;
+  include_signature_line: boolean;
+}
+
+export interface AcknowledgementSettings {
+  enabled: boolean;
+  title: string;
+  content: string;
+}
+
+export interface AbstractSettings {
+  enabled: boolean;
+  title: string;
+  content: string;
+}
+
+export interface ListOfFiguresSettings {
+  enabled: boolean;
+  title: string;
+  only_if_figures_exist: boolean;
+}
+
+export interface ListOfTablesSettings {
+  enabled: boolean;
+  title: string;
+  only_if_tables_exist: boolean;
+}
+
+export interface AbbreviationItem {
+  term: string;
+  definition: string;
+}
+
+export interface ListOfAbbreviationsSettings {
+  enabled: boolean;
+  title: string;
+  items: AbbreviationItem[];
+}
+
 export interface FormattingSettings {
   paper_size: PaperSize;
   margins: MarginSettings;
@@ -91,9 +133,15 @@ export interface FormattingSettings {
   preserve_tables: boolean;
   preserve_images: boolean;
   cover_page: CoverPageData;
+  declaration: DeclarationSettings;
+  acknowledgement: AcknowledgementSettings;
+  abstract: AbstractSettings;
+  table_of_contents: TableOfContentsSettings;
+  list_of_figures: ListOfFiguresSettings;
+  list_of_tables: ListOfTablesSettings;
+  list_of_abbreviations: ListOfAbbreviationsSettings;
   marking_scheme: MarkingSchemeData;
   page_numbering: PageNumberingSettings;
-  table_of_contents: TableOfContentsSettings;
   required_sections: string[];
 }
 
@@ -101,6 +149,13 @@ export interface DocumentStructureItem {
   level: number;
   text: string;
   word_count: number;
+}
+
+export interface CaptionItem {
+  number: string;
+  caption: string;
+  full_text: string;
+  paragraph_index?: number;
 }
 
 export interface InspectionResult {
@@ -111,12 +166,19 @@ export interface InspectionResult {
   total_tables: number;
   total_images: number;
   detected_headings: DocumentStructureItem[];
+  detected_figures?: CaptionItem[];
+  detected_table_captions?: CaptionItem[];
   detected_body_font: string | null;
   detected_margins_inches: Record<string, number> | null;
   has_cover_page_markers: boolean;
   has_table_of_contents: boolean;
   has_references_section: boolean;
   has_marking_scheme_section: boolean;
+  has_declaration_section?: boolean;
+  has_acknowledgement_section?: boolean;
+  has_abstract_section?: boolean;
+  has_list_of_figures?: boolean;
+  has_list_of_tables?: boolean;
 }
 
 export interface ComplianceCheckItem {
@@ -160,12 +222,32 @@ export interface CollegeProfile {
   is_builtin?: boolean;
 }
 
+export interface MetricItem {
+  value: string;
+  label: string;
+  description?: string;
+}
+
+export interface StepItem {
+  step_number: string;
+  title: string;
+  description: string;
+}
+
 export interface SlideItem {
   title: string;
   category?: string;
   bullets: string[];
   notes?: string;
-  slide_type?: 'title' | 'content' | 'two_column' | 'conclusion';
+  slide_type?: string;
+  column_left_title?: string;
+  column_left_bullets?: string[];
+  column_right_title?: string;
+  column_right_bullets?: string[];
+  metrics?: MetricItem[];
+  steps?: StepItem[];
+  table_headers?: string[];
+  table_rows?: string[][];
 }
 
 export interface PresentationOutline {
@@ -173,6 +255,12 @@ export interface PresentationOutline {
   subtitle: string;
   author: string;
   institution: string;
+  target_slide_count?: number;
+  audience?: string;
+  duration_minutes?: number;
+  text_density?: string;
+  include_notes?: boolean;
+  include_references?: boolean;
   slides: SlideItem[];
 }
 

@@ -85,8 +85,28 @@
   animation-play-state: paused;
 }
 
+/* Continuous Left-to-Right Infinite Marquee */
+@keyframes marqueeLtr {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-marquee-ltr {
+  animation: marqueeLtr 38s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-ltr:hover {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee-rtl {
+  .animate-marquee-rtl,
+  .animate-marquee-ltr {
     animation: none;
     transform: none;
   }

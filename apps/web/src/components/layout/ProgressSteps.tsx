@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Upload, Sliders, FileText, CheckSquare, ShieldAlert, Download } from 'lucide-react';
+import { Check, Upload, Sliders, FileText, Layers, FileCheck, ShieldAlert, Download } from 'lucide-react';
 
 export interface StepItem {
   id: number;
@@ -14,12 +14,13 @@ interface ProgressStepsProps {
 }
 
 export const WORKSPACE_STEPS: StepItem[] = [
-  { id: 1, label: 'Upload', icon: <Upload className="w-4 h-4" /> },
-  { id: 2, label: 'Requirements', icon: <Sliders className="w-4 h-4" /> },
-  { id: 3, label: 'Cover Page', icon: <FileText className="w-4 h-4" /> },
-  { id: 4, label: 'Marking Scheme', icon: <CheckSquare className="w-4 h-4" /> },
-  { id: 5, label: 'Review & Audit', icon: <ShieldAlert className="w-4 h-4" /> },
-  { id: 6, label: 'Download', icon: <Download className="w-4 h-4" /> },
+  { id: 1, label: '1. Upload', icon: <Upload className="w-4 h-4" /> },
+  { id: 2, label: '2. College Rules', icon: <Sliders className="w-4 h-4" /> },
+  { id: 3, label: '3. Cover Page', icon: <FileText className="w-4 h-4" /> },
+  { id: 4, label: '4. Front Matter', icon: <Layers className="w-4 h-4" /> },
+  { id: 5, label: '5. Formatting & Pages', icon: <FileCheck className="w-4 h-4" /> },
+  { id: 6, label: '6. Validate & Format', icon: <ShieldAlert className="w-4 h-4" /> },
+  { id: 7, label: '7. Download', icon: <Download className="w-4 h-4" /> },
 ];
 
 export const ProgressSteps: React.FC<ProgressStepsProps> = ({

@@ -280,7 +280,7 @@ export const ReviewComplianceStep: React.FC<ReviewComplianceStepProps> = ({
           className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-100 rounded-lg border border-slate-300 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Marking Scheme</span>
+          <span>Back to Formatting & Page Setup</span>
         </button>
 
         <button

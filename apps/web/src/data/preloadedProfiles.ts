@@ -71,6 +71,45 @@ export const defaultFormattingSettings: FormattingSettings = {
     lecturer_name: 'Dr. Katherine Evans',
     submission_date: 'October 2026',
   },
+  declaration: {
+    enabled: false,
+    title: 'Declaration of Originality',
+    statement: 'I hereby declare that this assignment represents my own original academic work, prepared in accordance with institutional academic integrity regulations.',
+    include_signature_line: true,
+  },
+  acknowledgement: {
+    enabled: false,
+    title: 'Acknowledgements',
+    content: 'I would like to express my sincere appreciation to my lecturer, academic supervisors, and institution faculty for their guidance and support.',
+  },
+  abstract: {
+    enabled: false,
+    title: 'Abstract',
+    content: 'This assignment presents a structured investigation into the subject matter, detailing core methodologies, findings, and evaluation.',
+  },
+  table_of_contents: {
+    enabled: true,
+    title: 'Table of Contents',
+    depth: 3,
+  },
+  list_of_figures: {
+    enabled: true,
+    title: 'List of Figures',
+    only_if_figures_exist: true,
+  },
+  list_of_tables: {
+    enabled: true,
+    title: 'List of Tables',
+    only_if_tables_exist: true,
+  },
+  list_of_abbreviations: {
+    enabled: false,
+    title: 'List of Abbreviations',
+    items: [
+      { term: 'API', definition: 'Application Programming Interface' },
+      { term: 'DOCX', definition: 'Office Open XML Document' },
+    ],
+  },
   marking_scheme: {
     enabled: true,
     title: 'Module Assessment Rubric & Marking Criteria',
@@ -90,11 +129,6 @@ export const defaultFormattingSettings: FormattingSettings = {
     roman_front_matter: true,
     restart_at_introduction: true,
     footer_alignment: 'RIGHT',
-  },
-  table_of_contents: {
-    enabled: true,
-    title: 'Table of Contents',
-    depth: 3,
   },
   required_sections: ['Introduction', 'Conclusion', 'References'],
 };

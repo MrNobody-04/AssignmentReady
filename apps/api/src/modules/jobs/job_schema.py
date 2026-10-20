@@ -69,6 +69,45 @@ class TableOfContentsSettings(BaseModel):
     title: str = "Table of Contents"
     depth: int = Field(default=3, ge=1, le=4)
 
+class DeclarationSettings(BaseModel):
+    enabled: bool = False
+    title: str = "Declaration of Originality"
+    statement: str = (
+        "I hereby declare that this assignment represents my own original academic work, "
+        "prepared in accordance with institutional academic integrity regulations. "
+        "All secondary literature, data sources, and external quotations have been duly cited."
+    )
+    include_signature_line: bool = True
+
+class AcknowledgementSettings(BaseModel):
+    enabled: bool = False
+    title: str = "Acknowledgements"
+    content: str = ""
+
+class AbstractSettings(BaseModel):
+    enabled: bool = False
+    title: str = "Abstract"
+    content: str = ""
+
+class ListOfFiguresSettings(BaseModel):
+    enabled: bool = True
+    title: str = "List of Figures"
+    only_if_figures_exist: bool = True
+
+class ListOfTablesSettings(BaseModel):
+    enabled: bool = True
+    title: str = "List of Tables"
+    only_if_tables_exist: bool = True
+
+class AbbreviationItem(BaseModel):
+    term: str
+    definition: str
+
+class ListOfAbbreviationsSettings(BaseModel):
+    enabled: bool = False
+    title: str = "List of Abbreviations"
+    items: list[AbbreviationItem] = Field(default_factory=list)
+
 class FormattingSettings(BaseModel):
     paper_size: Literal["A4", "LETTER"] = "A4"
     margins: MarginSettings = Field(default_factory=MarginSettings)
@@ -94,9 +133,15 @@ class FormattingSettings(BaseModel):
     preserve_tables: bool = True
     preserve_images: bool = True
     cover_page: CoverPageData = Field(default_factory=CoverPageData)
+    declaration: DeclarationSettings = Field(default_factory=DeclarationSettings)
+    acknowledgement: AcknowledgementSettings = Field(default_factory=AcknowledgementSettings)
+    abstract: AbstractSettings = Field(default_factory=AbstractSettings)
+    table_of_contents: TableOfContentsSettings = Field(default_factory=TableOfContentsSettings)
+    list_of_figures: ListOfFiguresSettings = Field(default_factory=ListOfFiguresSettings)
+    list_of_tables: ListOfTablesSettings = Field(default_factory=ListOfTablesSettings)
+    list_of_abbreviations: ListOfAbbreviationsSettings = Field(default_factory=ListOfAbbreviationsSettings)
     marking_scheme: MarkingSchemeData = Field(default_factory=MarkingSchemeData)
     page_numbering: PageNumberingSettings = Field(default_factory=PageNumberingSettings)
-    table_of_contents: TableOfContentsSettings = Field(default_factory=TableOfContentsSettings)
     required_sections: list[str] = Field(
         default_factory=lambda: ["Introduction", "Conclusion", "References"]
     )
@@ -124,6 +169,12 @@ class DocumentStructureItem(BaseModel):
     text: str
     word_count: int
 
+class CaptionItem(BaseModel):
+    number: str
+    caption: str
+    full_text: str
+    paragraph_index: int = 0
+
 class InspectionResult(BaseModel):
     filename: str
     file_size_bytes: int
@@ -132,12 +183,19 @@ class InspectionResult(BaseModel):
     total_tables: int
     total_images: int
     detected_headings: list[DocumentStructureItem]
+    detected_figures: list[CaptionItem] = Field(default_factory=list)
+    detected_table_captions: list[CaptionItem] = Field(default_factory=list)
     detected_body_font: str | None = None
     detected_margins_inches: dict[str, float] | None = None
     has_cover_page_markers: bool = False
     has_table_of_contents: bool = False
     has_references_section: bool = False
     has_marking_scheme_section: bool = False
+    has_declaration_section: bool = False
+    has_acknowledgement_section: bool = False
+    has_abstract_section: bool = False
+    has_list_of_figures: bool = False
+    has_list_of_tables: bool = False
 
 class JobStatusResponse(BaseModel):
     job_id: str

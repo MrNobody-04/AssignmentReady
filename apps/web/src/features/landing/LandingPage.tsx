@@ -11,6 +11,7 @@ import {
   Presentation,
 } from 'lucide-react';
 import { HeroShowcase } from './components/HeroShowcase';
+import { VisualShowcaseMarquee } from './components/VisualShowcaseMarquee';
 import { UniversalUploadCenter } from '../converters/UniversalUploadCenter';
 import { ScrollReveal } from '../../components/ui/ScrollReveal';
 
@@ -106,7 +107,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onStartFormatting,
   onCreatePresentation,
   onOpenProfiles,
-  onOpenConverter: _onOpenConverter,
+  onOpenConverter,
 }) => {
   return (
     <div className="space-y-20 pb-16">
@@ -178,26 +179,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </ScrollReveal>
 
-          {/* Sleek, Unified Glassmorphic Metadata Bar */}
-          <ScrollReveal delay={400}>
-            <div className="mt-8 mb-4 flex items-center justify-center">
-              <div className="inline-flex flex-wrap items-center justify-center gap-y-2 gap-x-3 px-5 py-2.5 rounded-full bg-slate-100/80 border border-slate-200/80 text-xs font-medium text-slate-600 shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
-                <span>Zero Paid AI APIs</span>
-                <span className="text-slate-300 select-none">•</span>
-                <span>No Account Required</span>
-                <span className="text-slate-300 select-none">•</span>
-                <span>Authentic Word XML Fields</span>
-                <span className="text-slate-300 select-none">•</span>
-                <span>1-Hour Automatic Cleanup</span>
-              </div>
-            </div>
-          </ScrollReveal>
-
           {/* ==================================================== */}
           {/* AUTOMATIC ANIMATED 5-SCENE FEATURE SHOWCASE */}
           {/* ==================================================== */}
-          <ScrollReveal delay={200} className="mt-4">
+          <ScrollReveal delay={300} className="mt-8">
             <HeroShowcase
               onStartFormatting={() => onStartFormatting()}
               onCreatePresentation={() => onCreatePresentation()}
@@ -231,6 +216,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           />
         </ScrollReveal>
       </section>
+
+      {/* ==================================================== */}
+      {/* VISUAL ARTIFACTS SHOWCASE - CONTINUOUS MARQUEE SLIDER */}
+      {/* ==================================================== */}
+      <VisualShowcaseMarquee
+        onStartFormatting={() => onStartFormatting()}
+        onCreatePresentation={() => onCreatePresentation()}
+        onOpenConverter={onOpenConverter}
+      />
 
       {/* ==================================================== */}
       {/* INSTITUTIONAL STANDARDS - CONTINUOUS INFINITE MARQUEE SLIDER */}
@@ -275,9 +269,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   >
                     <div>
                       <div
-                        className={`w-12 h-12 rounded-xl ${feature.iconBg} flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110`}
+                        className={`w-10 h-10 rounded-xl ${feature.iconBg} flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110`}
                       >
-                        <IconComponent className="w-6 h-6" />
+                        <IconComponent className="w-5 h-5" />
                       </div>
                       <h3 className="text-base font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors duration-200">
                         {feature.title}

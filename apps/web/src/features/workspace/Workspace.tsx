@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { BookOpen } from 'lucide-react';
 import { ProgressSteps } from '../../components/layout/ProgressSteps';
 import { UploadStep } from './steps/UploadStep';
-import { RequirementsStep } from './steps/RequirementsStep';
+import { CollegeRulesStep } from './steps/CollegeRulesStep';
 import { CoverPageStep } from './steps/CoverPageStep';
-import { MarkingSchemeStep } from './steps/MarkingSchemeStep';
+import { FrontMatterStep } from './steps/FrontMatterStep';
+import { RequirementsStep } from './steps/RequirementsStep';
 import { ReviewComplianceStep } from './steps/ReviewComplianceStep';
 import { DownloadStep } from './steps/DownloadStep';
 import {
@@ -41,7 +42,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   // Auxiliary files
   const [hasTemplateFile, setHasTemplateFile] = useState(false);
   const [, setHasGuidelinesFile] = useState(false);
-  const [hasRubricFile, setHasRubricFile] = useState(false);
+  const [, setHasRubricFile] = useState(false);
 
   // Results
   const [compliance, setCompliance] = useState<ComplianceReport | null>(null);
@@ -63,14 +64,14 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   const canNavigateTo = (stepId: number): boolean => {
     if (stepId === 1) return true;
     if (!jobId || !assignmentFile) return false;
-    if (stepId === 6) return !!compliance;
+    if (stepId === 7) return !!compliance;
     return true;
   };
 
   const handleFormattingCompleted = (comp: ComplianceReport, hasPdf = false) => {
     setCompliance(comp);
     setHasPdfVersion(hasPdf);
-    setCurrentStep(6); // Move to Download
+    setCurrentStep(7); // Move to Download
   };
 
   const handleReset = () => {
@@ -114,6 +115,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
       {/* Main Workspace Stage */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ScrollReveal delay={150} key={currentStep}>
+          {/* Step 1: Upload */}
           {currentStep === 1 && (
             <UploadStep
               jobId={jobId}
@@ -127,15 +129,18 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             />
           )}
 
+          {/* Step 2: College Rules & Profile */}
           {currentStep === 2 && (
-            <RequirementsStep
+            <CollegeRulesStep
               settings={settings}
               onChange={onUpdateSettings}
               onNext={() => setCurrentStep(3)}
               onBack={() => setCurrentStep(1)}
+              onOpenProfilesModal={onOpenProfiles}
             />
           )}
 
+          {/* Step 3: Cover Page Details */}
           {currentStep === 3 && (
             <CoverPageStep
               settings={settings}
@@ -146,30 +151,41 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             />
           )}
 
+          {/* Step 4: Required Front Matter */}
           {currentStep === 4 && (
-            <MarkingSchemeStep
+            <FrontMatterStep
               settings={settings}
-              hasRubricFile={hasRubricFile}
-              onChange={(markingData) =>
-                onUpdateSettings({ ...settings, marking_scheme: markingData })
-              }
+              inspection={inspection}
+              onChange={onUpdateSettings}
               onNext={() => setCurrentStep(5)}
               onBack={() => setCurrentStep(3)}
             />
           )}
 
-          {currentStep === 5 && jobId && (
+          {/* Step 5: Formatting & Page Numbering */}
+          {currentStep === 5 && (
+            <RequirementsStep
+              settings={settings}
+              onChange={onUpdateSettings}
+              onNext={() => setCurrentStep(6)}
+              onBack={() => setCurrentStep(4)}
+            />
+          )}
+
+          {/* Step 6: Process & Validate */}
+          {currentStep === 6 && jobId && (
             <ReviewComplianceStep
               jobId={jobId}
               settings={settings}
               inspection={inspection}
               compliance={compliance}
               onFormattingCompleted={handleFormattingCompleted}
-              onBack={() => setCurrentStep(4)}
+              onBack={() => setCurrentStep(5)}
             />
           )}
 
-          {currentStep === 6 && jobId && (
+          {/* Step 7: Download Formatted Document */}
+          {currentStep === 7 && jobId && (
             <DownloadStep
               jobId={jobId}
               originalFilename={assignmentFile?.name || 'assignment.docx'}

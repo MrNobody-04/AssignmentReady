@@ -4,10 +4,21 @@ from docx.shared import Inches, Pt, Mm
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from src.modules.jobs.job_schema import FormattingSettings, HeadingStyle, BodyStyle
 from src.modules.documents.style_utils import ALIGNMENT_MAP, hex_to_rgb, set_run_font
-from src.modules.documents.cover_page import apply_cover_page
-from src.modules.documents.toc import insert_table_of_contents
+from src.modules.documents.inspector import inspect_docx
+from src.modules.documents.cover_page import insert_cover_page_before
 from src.modules.documents.marking_scheme import apply_marking_scheme
 from src.modules.documents.page_numbering import apply_page_numbering
+from src.modules.documents.front_matter import (
+    add_section_break_to_paragraph,
+    remove_existing_front_matter_paragraphs,
+    insert_declaration_before,
+    insert_acknowledgement_before,
+    insert_abstract_before,
+    insert_table_of_contents_before,
+    insert_list_of_figures_before,
+    insert_list_of_tables_before,
+    insert_list_of_abbreviations_before,
+)
 from src.common.errors import DocumentProcessingError
 
 def apply_page_setup(doc: docx.Document, settings: FormattingSettings) -> None:
@@ -48,7 +59,6 @@ def format_heading_paragraph(
         run.italic = heading_cfg.italic
 
 def format_body_paragraph(p, body_cfg: BodyStyle) -> None:
-    # Preserve indentation if present on block quotes or metadata
     p_format = p.paragraph_format
     if not (p_format.left_indent and p_format.left_indent.inches >= 0.8):
         p_format.alignment = ALIGNMENT_MAP.get(body_cfg.alignment, WD_ALIGN_PARAGRAPH.LEFT)
@@ -133,24 +143,83 @@ def apply_formatting(
     except Exception as e:
         raise DocumentProcessingError(f"Could not open document: {str(e)}")
 
-    # 1. Base formatting
+    # 1. Pre-inspect input document for headings, figures, tables
+    inspection = inspect_docx(input_file)
+    detected_headings = inspection.detected_headings
+    detected_figures = inspection.detected_figures
+    detected_tables = inspection.detected_table_captions
+
+    # 2. De-duplicate: clean up any existing duplicate front matter
+    remove_existing_front_matter_paragraphs(doc, settings)
+
+    # 3. Base formatting (styles, spacing, typography)
     apply_document_formatting(doc, settings)
 
-    # 2. Cover Page
-    if settings.cover_page.enabled:
-        apply_cover_page(doc, settings.cover_page, template_path=cover_template_path)
-
-    # 3. Table of Contents
-    if settings.table_of_contents.enabled:
-        insert_table_of_contents(doc, settings.table_of_contents)
-
-    # 4. Marking Scheme
-    if settings.marking_scheme.enabled:
+    # 4. Marking Scheme (if placed at end)
+    if settings.marking_scheme.enabled and settings.marking_scheme.placement == "end_of_document":
         apply_marking_scheme(doc, settings.marking_scheme)
 
-    # 5. Page Numbering
+    # 5. Architecture: Section breaks & Front Matter
+    first_body_p = doc.paragraphs[0] if doc.paragraphs else doc.add_paragraph()
+
+    has_front_matter = (
+        settings.declaration.enabled
+        or settings.acknowledgement.enabled
+        or settings.abstract.enabled
+        or settings.table_of_contents.enabled
+        or (settings.list_of_figures.enabled and (detected_figures or not settings.list_of_figures.only_if_figures_exist))
+        or (settings.list_of_tables.enabled and (detected_tables or not settings.list_of_tables.only_if_tables_exist))
+        or settings.list_of_abbreviations.enabled
+    )
+
+    if has_front_matter:
+        sec_break_body = first_body_p.insert_paragraph_before()
+        add_section_break_to_paragraph(sec_break_body)
+        target_fm_p = sec_break_body
+    else:
+        target_fm_p = first_body_p
+
+    if settings.cover_page.enabled:
+        sec_break_cover = target_fm_p.insert_paragraph_before()
+        add_section_break_to_paragraph(sec_break_cover)
+        insert_cover_page_before(sec_break_cover, settings.cover_page, template_path=cover_template_path)
+
+    # Front Matter pages inserted sequentially before target_fm_p:
+    base_font = settings.body.font_family or "Times New Roman"
+
+    # 2. Declaration
+    if settings.declaration.enabled:
+        insert_declaration_before(target_fm_p, settings.declaration, base_font=base_font)
+
+    # 3. Acknowledgements
+    if settings.acknowledgement.enabled:
+        insert_acknowledgement_before(target_fm_p, settings.acknowledgement, base_font=base_font)
+
+    # 4. Abstract
+    if settings.abstract.enabled:
+        insert_abstract_before(target_fm_p, settings.abstract, base_font=base_font)
+
+    # 5. Table of Contents
+    if settings.table_of_contents.enabled:
+        insert_table_of_contents_before(target_fm_p, detected_headings, title=settings.table_of_contents.title, base_font=base_font)
+
+    # 6. List of Figures (only if figures exist or explicitly requested)
+    if settings.list_of_figures.enabled:
+        if detected_figures or not settings.list_of_figures.only_if_figures_exist:
+            insert_list_of_figures_before(target_fm_p, detected_figures, title=settings.list_of_figures.title, base_font=base_font)
+
+    # 7. List of Tables (only if tables exist or explicitly requested)
+    if settings.list_of_tables.enabled:
+        if detected_tables or not settings.list_of_tables.only_if_tables_exist:
+            insert_list_of_tables_before(target_fm_p, detected_tables, title=settings.list_of_tables.title, base_font=base_font)
+
+    # 8. List of Abbreviations
+    if settings.list_of_abbreviations.enabled:
+        insert_list_of_abbreviations_before(target_fm_p, settings.list_of_abbreviations, base_font=base_font)
+
+    # 6. Configure Section Page Numbering (Cover = none, Front matter = Roman, Body = Arabic start at 1)
     if settings.page_numbering.enabled:
-        apply_page_numbering(doc, settings.page_numbering)
+        apply_page_numbering(doc, settings)
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
     doc.save(str(output_file))

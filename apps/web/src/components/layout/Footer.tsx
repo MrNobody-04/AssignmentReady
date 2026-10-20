@@ -8,7 +8,6 @@ import {
   Presentation,
   FileType,
   BookOpen,
-  ArrowUpRight,
 } from 'lucide-react';
 import { AppView } from '../../types';
 import { ScrollReveal } from '../ui/ScrollReveal';
@@ -34,9 +33,9 @@ export const Footer: React.FC<FooterProps> = ({
       <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-12">
           {/* Col 1: Brand & Mission */}
-          <ScrollReveal delay={0} className="space-y-4">
+          <ScrollReveal delay={0} className="lg:col-span-7 space-y-4">
             <div className="flex items-center gap-3">
               <img
                 src="/logo.jpg"
@@ -53,7 +52,7 @@ export const Footer: React.FC<FooterProps> = ({
               </div>
             </div>
 
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-400 leading-relaxed max-w-lg">
               A privacy-first academic preparation platform designed to help university students format assignments to institutional guidelines, convert documents, and generate presentation decks.
             </p>
 
@@ -75,7 +74,7 @@ export const Footer: React.FC<FooterProps> = ({
           </ScrollReveal>
 
           {/* Col 2: Quick Navigation */}
-          <ScrollReveal delay={100}>
+          <ScrollReveal delay={100} className="lg:col-span-5">
             <h4 className="text-xs font-bold text-slate-200 uppercase tracking-widest mb-4">
               Quick Navigation
             </h4>
@@ -126,69 +125,6 @@ export const Footer: React.FC<FooterProps> = ({
                 </button>
               </li>
             </ul>
-          </ScrollReveal>
-
-          {/* Col 3: Core Capabilities */}
-          <ScrollReveal delay={200}>
-            <h4 className="text-xs font-bold text-slate-200 uppercase tracking-widest mb-4">
-              Core Capabilities
-            </h4>
-            <ul className="space-y-2.5 text-xs text-slate-400">
-              <li className="flex items-center gap-2 hover:text-slate-200 transition-colors">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                <span>OpenXML Typography & Margins</span>
-              </li>
-              <li className="flex items-center gap-2 hover:text-slate-200 transition-colors">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                <span>Faculty Cover Page Templates</span>
-              </li>
-              <li className="flex items-center gap-2 hover:text-slate-200 transition-colors">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                <span>Marking Scheme Rubric Tables</span>
-              </li>
-              <li className="flex items-center gap-2 hover:text-slate-200 transition-colors">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                <span>Word XML Dynamic Pagination</span>
-              </li>
-              <li className="flex items-center gap-2 hover:text-slate-200 transition-colors">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                <span>PowerPoint Presentation Decks</span>
-              </li>
-              <li className="flex items-center gap-2 hover:text-slate-200 transition-colors">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                <span>Deterministic Compliance Auditor</span>
-              </li>
-            </ul>
-          </ScrollReveal>
-
-          {/* Col 4: Academic Notice & Legal (Glassmorphic Callout) */}
-          <ScrollReveal delay={300}>
-            <h4 className="text-xs font-bold text-slate-200 uppercase tracking-widest mb-4">
-              Academic Integrity
-            </h4>
-            <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 backdrop-blur-xs space-y-3">
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                AssignmentReady automates typography and institutional structure. Proper citation, factual validity, and academic ethics remain the student's responsibility. Formatting does not prove absence of AI generation.
-              </p>
-              <div className="pt-2 border-t border-slate-800/80 flex flex-col gap-1.5 text-xs">
-                <button
-                  type="button"
-                  onClick={onOpenPrivacy}
-                  className="flex items-center justify-between text-indigo-400 hover:text-indigo-300 font-medium transition-colors text-left"
-                >
-                  <span>Privacy & Data Processing</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={onOpenTerms}
-                  className="flex items-center justify-between text-indigo-400 hover:text-indigo-300 font-medium transition-colors text-left"
-                >
-                  <span>Terms of Use & Student Notice</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
           </ScrollReveal>
         </div>
 

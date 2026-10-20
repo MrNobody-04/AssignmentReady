@@ -23,56 +23,83 @@ router = APIRouter(prefix="/api/presentation", tags=["Presentation Generator"])
 
 class GeneratePresentationRequest(BaseModel):
     outline: PresentationOutline
-    theme: str = "academic_classic"
+    theme: str = "modern_academic"
     custom_filename: str = ""
 
 @router.get("/themes")
 async def get_presentation_themes():
     themes_list = [
         {
-            "id": "academic_classic",
-            "name": "Academic Classic",
-            "description": "Deep navy blue and warm amber accents with classic serif headings.",
+            "id": "modern_academic",
+            "name": "Modern Academic",
+            "description": "Clean, structured scholarly deep navy blue and warm amber accents with serif headings.",
             "is_dark": False,
             "primary_color": "#1E3A8A",
             "accent_color": "#B45309",
             "font_title": "Georgia",
         },
         {
-            "id": "modern_minimal",
-            "name": "Modern Minimal",
-            "description": "Ultra-clean layout with slate tones and vibrant indigo highlights.",
+            "id": "tech_innovation",
+            "name": "Technology & Innovation",
+            "description": "Contemporary technology visuals with vibrant cyan accents and sharp geometric layouts.",
             "is_dark": False,
             "primary_color": "#0F172A",
-            "accent_color": "#4F46E5",
+            "accent_color": "#06B6D4",
             "font_title": "Segoe UI",
         },
         {
-            "id": "corporate_blue",
-            "name": "Corporate Blue",
-            "description": "Crisp corporate styling with vibrant blue accents and clear contrast.",
+            "id": "minimalist_premium",
+            "name": "Minimalist Premium",
+            "description": "Generous whitespace, elegant typography, and refined stone and ochre tones.",
+            "is_dark": False,
+            "primary_color": "#1C1917",
+            "accent_color": "#D97706",
+            "font_title": "Georgia",
+        },
+        {
+            "id": "corporate_pro",
+            "name": "Corporate Professional",
+            "description": "Polished executive enterprise styling with royal blue and clean data cards.",
             "is_dark": False,
             "primary_color": "#0A2540",
-            "accent_color": "#0066CC",
+            "accent_color": "#2563EB",
             "font_title": "Arial",
         },
         {
-            "id": "research_presentation",
-            "name": "Research Presentation",
-            "description": "Scholarly deep teal and sage accents, designed for research and findings.",
+            "id": "creative_gradient",
+            "name": "Creative Gradient",
+            "description": "Tasteful gradient highlights, bold headlines, and vibrant fuchsia and violet accents.",
             "is_dark": False,
-            "primary_color": "#0F766E",
+            "primary_color": "#4338CA",
+            "accent_color": "#EC4899",
+            "font_title": "Trebuchet MS",
+        },
+        {
+            "id": "research_science",
+            "name": "Research & Science",
+            "description": "Tailored for scientific investigations, laboratory methodologies, and empirical findings.",
+            "is_dark": False,
+            "primary_color": "#065F46",
             "accent_color": "#0D9488",
             "font_title": "Trebuchet MS",
         },
         {
-            "id": "dark_professional",
-            "name": "Dark Professional",
-            "description": "Sleek dark slate background with glowing cyan and crisp typography.",
+            "id": "dark_presentation",
+            "name": "Dark Presentation",
+            "description": "Readable dark obsidian background with high-contrast glowing cyan highlights.",
             "is_dark": True,
             "primary_color": "#0F172A",
-            "accent_color": "#06B6D4",
+            "accent_color": "#38BDF8",
             "font_title": "Segoe UI",
+        },
+        {
+            "id": "university_classic",
+            "name": "University Classic",
+            "description": "Formal traditional academic prestige styling with Oxford blue, burgundy, and antique gold.",
+            "is_dark": False,
+            "primary_color": "#002147",
+            "accent_color": "#800020",
+            "font_title": "Georgia",
         },
     ]
     return {"themes": themes_list}

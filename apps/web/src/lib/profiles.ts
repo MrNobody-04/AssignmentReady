@@ -71,6 +71,47 @@ export const DEFAULT_FORMATTING_SETTINGS: FormattingSettings = {
     lecturer_name: '',
     submission_date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
   },
+  declaration: {
+    enabled: false,
+    title: 'Declaration of Originality',
+    statement: 'I hereby declare that this assignment represents my own original academic work, prepared in accordance with institutional academic integrity regulations. All secondary literature, data sources, and external quotations have been duly cited.',
+    include_signature_line: true,
+  },
+  acknowledgement: {
+    enabled: false,
+    title: 'Acknowledgements',
+    content: 'I would like to express my sincere appreciation to my lecturer, academic supervisors, and institution faculty for their guidance, valuable insights, and continuous support throughout the completion of this assignment.',
+  },
+  abstract: {
+    enabled: false,
+    title: 'Abstract',
+    content: 'This academic report provides an in-depth examination and structured analysis of the subject matter. It outlines the core research questions, theoretical context, investigative methodology, and synthesized conclusions.',
+  },
+  table_of_contents: {
+    enabled: true,
+    title: 'Table of Contents',
+    depth: 3,
+  },
+  list_of_figures: {
+    enabled: true,
+    title: 'List of Figures',
+    only_if_figures_exist: true,
+  },
+  list_of_tables: {
+    enabled: true,
+    title: 'List of Tables',
+    only_if_tables_exist: true,
+  },
+  list_of_abbreviations: {
+    enabled: false,
+    title: 'List of Abbreviations',
+    items: [
+      { term: 'API', definition: 'Application Programming Interface' },
+      { term: 'UI / UX', definition: 'User Interface / User Experience' },
+      { term: 'DOCX', definition: 'Office Open XML Document' },
+      { term: 'PDF', definition: 'Portable Document Format' },
+    ],
+  },
   marking_scheme: {
     enabled: false,
     title: 'Official Assessment Criteria & Marking Scheme',
@@ -90,11 +131,6 @@ export const DEFAULT_FORMATTING_SETTINGS: FormattingSettings = {
     roman_front_matter: true,
     restart_at_introduction: true,
     footer_alignment: 'RIGHT',
-  },
-  table_of_contents: {
-    enabled: true,
-    title: 'Table of Contents',
-    depth: 3,
   },
   required_sections: ['Introduction', 'Conclusion', 'References'],
 };

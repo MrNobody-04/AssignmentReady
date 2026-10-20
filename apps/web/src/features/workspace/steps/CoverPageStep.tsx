@@ -323,15 +323,15 @@ export const CoverPageStep: React.FC<CoverPageStepProps> = ({
           className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-100 rounded-lg border border-slate-300 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Requirements</span>
+          <span>Back to College Rules</span>
         </button>
 
         <button
           type="button"
           onClick={onNext}
-          className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-academic-navy hover:bg-academic-indigo rounded-lg shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-academic-navy hover:bg-academic-indigo rounded-lg shadow-sm transition-colors cursor-pointer"
         >
-          <span>Continue to Marking Scheme</span>
+          <span>Continue to Front Matter</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
