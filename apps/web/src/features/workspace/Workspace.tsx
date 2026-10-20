@@ -159,9 +159,33 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               assignmentFile={assignmentFile}
               inspection={inspection}
               onAssignmentUploaded={handleAssignmentUploaded}
-              onCoverTemplateUploaded={() => setHasTemplateFile(true)}
-              onGuidelinesUploaded={() => setHasGuidelinesFile(true)}
-              onMarkingSchemeUploaded={() => setHasRubricFile(true)}
+              onCoverTemplateUploaded={() => {
+                setHasTemplateFile(true);
+                onUpdateSettings({ ...settings, cover_page: { ...settings.cover_page, mode: 'template', enabled: true } });
+              }}
+              onGuidelinesUploaded={(_, analysis) => {
+                setHasGuidelinesFile(true);
+                if (!analysis.has_suggestions) return;
+                const suggested = analysis.suggestions;
+                onUpdateSettings({
+                  ...settings,
+                  ...(suggested.paper_size ? { paper_size: suggested.paper_size } : {}),
+                  ...(suggested.margins ? { margins: { ...settings.margins, ...suggested.margins } } : {}),
+                  ...(suggested.body ? { body: { ...settings.body, ...suggested.body } } : {}),
+                  ...(suggested.required_sections ? { required_sections: suggested.required_sections } : {}),
+                });
+              }}
+              onMarkingSchemeUploaded={(_, criteria) => {
+                setHasRubricFile(true);
+                onUpdateSettings({
+                  ...settings,
+                  marking_scheme: {
+                    ...settings.marking_scheme,
+                    enabled: criteria.length > 0,
+                    criteria,
+                  },
+                });
+              }}
               onNext={() => setCurrentStep(2)}
             />
           )}

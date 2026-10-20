@@ -3,10 +3,17 @@ import shutil
 from pathlib import Path
 from pydantic import BaseModel
 
+
+def _cors_origins_from_env() -> list[str]:
+    raw = os.getenv("CORS_ORIGINS", "")
+    if raw.strip():
+        return [origin.strip() for origin in raw.split(",") if origin.strip()]
+    return ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"]
+
 class AppConfig(BaseModel):
     app_name: str = "AssignmentReady API"
     environment: str = os.getenv("ENVIRONMENT", "development")
-    cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"]
+    cors_origins: list[str] = _cors_origins_from_env()
     base_dir: Path = Path(__file__).resolve().parent.parent
     storage_dir: Path = base_dir / "storage"
     max_upload_size_bytes: int = 25 * 1024 * 1024  # 25 MB

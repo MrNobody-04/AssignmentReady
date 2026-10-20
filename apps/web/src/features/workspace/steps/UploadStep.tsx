@@ -11,7 +11,7 @@ import {
   Loader2,
   CheckCircle2,
 } from 'lucide-react';
-import { InspectionResult } from '../../../types';
+import { GuidelineAnalysis, InspectionResult, MarkingCriterion } from '../../../types';
 import { api, ApiError } from '../../../lib/api';
 
 interface UploadStepProps {
@@ -20,8 +20,8 @@ interface UploadStepProps {
   inspection: InspectionResult | null;
   onAssignmentUploaded: (jobId: string, file: File, inspection: InspectionResult) => void;
   onCoverTemplateUploaded: (file: File) => void;
-  onGuidelinesUploaded: (file: File) => void;
-  onMarkingSchemeUploaded: (file: File) => void;
+  onGuidelinesUploaded: (file: File, analysis: GuidelineAnalysis) => void;
+  onMarkingSchemeUploaded: (file: File, criteria: MarkingCriterion[]) => void;
   onNext: () => void;
 }
 
@@ -42,6 +42,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
   const [templateFile, setTemplateFile] = useState<File | null>(null);
   const [guidelinesFile, setGuidelinesFile] = useState<File | null>(null);
   const [rubricFile, setRubricFile] = useState<File | null>(null);
+  const [guidelineEvidence, setGuidelineEvidence] = useState<string[]>([]);
 
   const assignmentInputRef = useRef<HTMLInputElement>(null);
   const templateInputRef = useRef<HTMLInputElement>(null);
@@ -118,9 +119,10 @@ export const UploadStep: React.FC<UploadStepProps> = ({
     if (!jobId || !e.target.files || !e.target.files[0]) return;
     const file = e.target.files[0];
     try {
-      await api.uploadGuidelines(jobId, file);
+      const res = await api.uploadGuidelines(jobId, file);
       setGuidelinesFile(file);
-      onGuidelinesUploaded(file);
+      setGuidelineEvidence(res.guideline_analysis.evidence);
+      onGuidelinesUploaded(file, res.guideline_analysis);
     } catch (err: unknown) {
       const msg = err instanceof ApiError ? err.message : 'Failed to attach guidelines';
       setErrorMessage(msg);
@@ -131,9 +133,9 @@ export const UploadStep: React.FC<UploadStepProps> = ({
     if (!jobId || !e.target.files || !e.target.files[0]) return;
     const file = e.target.files[0];
     try {
-      await api.uploadMarkingScheme(jobId, file);
+      const res = await api.uploadMarkingScheme(jobId, file);
       setRubricFile(file);
-      onMarkingSchemeUploaded(file);
+      onMarkingSchemeUploaded(file, res.criteria);
     } catch (err: unknown) {
       const msg = err instanceof ApiError ? err.message : 'Failed to attach marking scheme';
       setErrorMessage(msg);
@@ -338,16 +340,23 @@ export const UploadStep: React.FC<UploadStepProps> = ({
 
           <div>
             {guidelinesFile ? (
-              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
-                <span className="truncate max-w-[150px] font-medium text-slate-800">
-                  {guidelinesFile.name}
-                </span>
-                <button
-                  onClick={() => setGuidelinesFile(null)}
-                  className="text-slate-400 hover:text-rose-600"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+              <div className="space-y-2">
+                <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                  <span className="truncate max-w-[150px] font-medium text-slate-800">
+                    {guidelinesFile.name}
+                  </span>
+                  <button
+                    onClick={() => { setGuidelinesFile(null); setGuidelineEvidence([]); }}
+                    className="text-slate-400 hover:text-rose-600"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                {guidelineEvidence.length > 0 && (
+                  <p className="text-[11px] leading-relaxed text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-md p-2">
+                    Applied to formatting: {guidelineEvidence.join(' ')} Review these settings in the next step.
+                  </p>
+                )}
               </div>
             ) : (
               <button

@@ -428,15 +428,23 @@ class JobManager:
         # Also purge any orphaned directories on disk older than TTL
         evicted_disk = 0
         if config.storage_dir.exists():
+            managed_collections = {"conversions", "presentations"}
             for item in config.storage_dir.iterdir():
                 if item.is_dir():
-                    try:
-                        mtime = item.stat().st_mtime
-                        if (now - mtime) > config.job_ttl_seconds:
-                            shutil.rmtree(item, ignore_errors=True)
-                            evicted_disk += 1
-                    except Exception:
-                        pass
+                    # Conversion and presentation directories are collections;
+                    # expire their individual UUID children, not the whole
+                    # collection based on its most recent child activity.
+                    candidates = list(item.iterdir()) if item.name in managed_collections else [item]
+                    for candidate in candidates:
+                        if not candidate.is_dir():
+                            continue
+                        try:
+                            mtime = candidate.stat().st_mtime
+                            if (now - mtime) > config.job_ttl_seconds:
+                                shutil.rmtree(candidate, ignore_errors=True)
+                                evicted_disk += 1
+                        except Exception:
+                            pass
         return len(expired) + evicted_disk
 
 job_manager = JobManager()

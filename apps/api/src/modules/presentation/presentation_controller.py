@@ -43,6 +43,24 @@ from src.modules.jobs.job_manager import job_manager
 
 router = APIRouter(prefix="/api/presentation", tags=["Presentation Generator"])
 
+
+def _apply_project_cover_metadata(outline: PresentationOutline, settings) -> PresentationOutline:
+    """Carry approved assignment metadata into the deck instead of generic defaults."""
+    if not settings:
+        return outline
+    cover = settings.cover_page
+    outline.title = cover.assignment_title or outline.title
+    outline.subtitle = cover.assignment_subtitle or outline.subtitle
+    outline.author = cover.student_name or outline.author
+    outline.student_id = cover.student_id or outline.student_id
+    outline.institution = cover.institution or outline.institution
+    outline.college_name = cover.department or outline.college_name
+    outline.course_name = cover.course or outline.course_name
+    outline.course_code = cover.module_code or outline.course_code
+    outline.lecturer_name = cover.lecturer_name or outline.lecturer_name
+    outline.submission_date = cover.submission_date or outline.submission_date
+    return outline
+
 class ProjectPlanSlidesRequest(BaseModel):
     version_id: Optional[int] = None
     target_slide_count: int = 10
@@ -435,7 +453,7 @@ async def plan_project_slides(job_id: str, req: ProjectPlanSlidesRequest):
     if req.college_logo_base64:
         outline.college_logo_base64 = req.college_logo_base64
 
-    return outline
+    return _apply_project_cover_metadata(outline, record.settings)
 
 @router.post("/project/{job_id}/generate")
 async def generate_project_presentation(job_id: str, req: ProjectGeneratePresentationRequest):

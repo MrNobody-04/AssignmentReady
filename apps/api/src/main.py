@@ -3,6 +3,7 @@ import time
 from contextlib import asynccontextmanager
 import uuid
 from pathlib import Path
+import docx
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -62,7 +63,7 @@ app = FastAPI(
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow local dev ports (5173, 3000, 8080)
+    allow_origins=config.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -203,7 +204,14 @@ async def upload_guidelines(job_id: str, file: UploadFile = File(...)):
 
     record = job_manager.get_job(job_id)
     record.has_guidelines = True
-    return {"message": "Guidelines uploaded successfully", "job_id": job_id}
+    from src.modules.documents.guideline_analyzer import extract_guideline_text, analyze_guidelines
+    try:
+        analysis = analyze_guidelines(extract_guideline_text(out_path, content, ext))
+    except Exception:
+        # The original guideline remains attached even if it is image-only or
+        # contains no extractable text; formatting is never silently guessed.
+        analysis = {"suggestions": {}, "evidence": [], "has_suggestions": False}
+    return {"message": "Guidelines uploaded successfully", "job_id": job_id, "guideline_analysis": analysis}
 
 @app.post("/api/jobs/{job_id}/upload-rubric")
 @app.post("/api/upload/marking-scheme/{job_id}")
@@ -268,6 +276,7 @@ async def upload_rubric(job_id: str, file: UploadFile = File(...)):
         "message": "Marking scheme uploaded and parsed successfully",
         "job_id": job_id,
         "criteria_count": record.rubric_data.total_criteria_count if record.rubric_data else 0,
+        "criteria": record.rubric_data.criteria if record.rubric_data else [],
     }
 
 @app.get("/api/jobs/{job_id}", response_model=JobStatusResponse)
@@ -463,22 +472,6 @@ async def delete_job(job_id: str):
 # =====================================================================
 # Compatibility Endpoints for Direct /api/upload & Frontend APIs
 # =====================================================================
-
-@app.post("/api/upload", response_model=JobStatusResponse)
-async def upload_assignment_direct_alias(file: UploadFile = File(...)):
-    return await upload_assignment(file)
-
-@app.post("/api/upload/template/{job_id}")
-async def upload_cover_template_alias(job_id: str, file: UploadFile = File(...)):
-    return await upload_cover_template(job_id, file)
-
-@app.post("/api/upload/guidelines/{job_id}")
-async def upload_guidelines_alias(job_id: str, file: UploadFile = File(...)):
-    return await upload_guidelines(job_id, file)
-
-@app.post("/api/upload/marking-scheme/{job_id}")
-async def upload_rubric_alias(job_id: str, file: UploadFile = File(...)):
-    return await upload_rubric(job_id, file)
 
 @app.post("/api/inspect/{job_id}")
 async def inspect_document_alias(job_id: str):

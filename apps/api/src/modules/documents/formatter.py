@@ -155,11 +155,7 @@ def apply_formatting(
     # 3. Base formatting (styles, spacing, typography)
     apply_document_formatting(doc, settings)
 
-    # 4. Marking Scheme (if placed at end)
-    if settings.marking_scheme.enabled and settings.marking_scheme.placement == "end_of_document":
-        apply_marking_scheme(doc, settings.marking_scheme)
-
-    # 5. Architecture: Section breaks & Front Matter
+    # 4. Architecture: Section breaks & Front Matter
     first_body_p = doc.paragraphs[0] if doc.paragraphs else doc.add_paragraph()
 
     has_front_matter = (
@@ -183,6 +179,12 @@ def apply_formatting(
         sec_break_cover = target_fm_p.insert_paragraph_before()
         add_section_break_to_paragraph(sec_break_cover)
         insert_cover_page_before(sec_break_cover, settings.cover_page, template_path=cover_template_path)
+
+    # Insert the rubric after the cover/front-matter anchor, before References, or at
+    # the end according to the explicit placement selected by the student.
+    if settings.marking_scheme.enabled:
+        rubric_anchor = target_fm_p if settings.marking_scheme.placement == "after_cover" else None
+        apply_marking_scheme(doc, settings.marking_scheme, anchor_paragraph=rubric_anchor)
 
     # Front Matter pages inserted sequentially before target_fm_p:
     base_font = settings.body.font_family or "Times New Roman"

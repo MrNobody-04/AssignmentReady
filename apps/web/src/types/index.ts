@@ -64,6 +64,14 @@ export interface MarkingSchemeData {
   notes: string;
 }
 
+export interface GuidelineAnalysis {
+  suggestions: Partial<Pick<FormattingSettings, 'paper_size' | 'margins' | 'required_sections'>> & {
+    body?: Partial<BodyStyle>;
+  };
+  evidence: string[];
+  has_suggestions: boolean;
+}
+
 export interface PageNumberingSettings {
   enabled: boolean;
   hide_on_cover: boolean;

@@ -3,6 +3,8 @@ import {
   InspectionResult,
   JobStatusResponse,
   ComplianceReport,
+  MarkingCriterion,
+  GuidelineAnalysis,
 } from '../types';
 
 const API_BASE = '/api';
@@ -64,7 +66,7 @@ export const api = {
     };
   },
 
-  async uploadCoverTemplate(jobId: string, file: File): Promise<{ status: string; message: string }> {
+  async uploadCoverTemplate(jobId: string, file: File): Promise<{ message: string; job_id: string }> {
     const formData = new FormData();
     formData.append('file', file);
     const res = await fetch(`${API_BASE}/upload/template/${jobId}`, {
@@ -74,7 +76,7 @@ export const api = {
     return handleResponse(res);
   },
 
-  async uploadGuidelines(jobId: string, file: File): Promise<{ status: string; message: string }> {
+  async uploadGuidelines(jobId: string, file: File): Promise<{ message: string; job_id: string; guideline_analysis: GuidelineAnalysis }> {
     const formData = new FormData();
     formData.append('file', file);
     const res = await fetch(`${API_BASE}/upload/guidelines/${jobId}`, {
@@ -84,7 +86,7 @@ export const api = {
     return handleResponse(res);
   },
 
-  async uploadMarkingScheme(jobId: string, file: File): Promise<{ status: string; message: string }> {
+  async uploadMarkingScheme(jobId: string, file: File): Promise<{ message: string; job_id: string; criteria_count: number; criteria: MarkingCriterion[] }> {
     const formData = new FormData();
     formData.append('file', file);
     const res = await fetch(`${API_BASE}/upload/marking-scheme/${jobId}`, {

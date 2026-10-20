@@ -1,8 +1,9 @@
 import os
+from copy import deepcopy
 from pathlib import Path
 import docx
 from docx.shared import Inches, Pt, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
@@ -68,32 +69,43 @@ def _insert_template_cover_before(target_p, cover_data: CoverPageData, template_
         "{{submission_date}}": cover_data.submission_date,
     }
 
-    # Replace placeholders in paragraphs and tables of template
-    for p in tpl_doc.paragraphs:
+    def replace_in_paragraph(paragraph) -> None:
+        """Replace split or single-run placeholders before copying template XML."""
+        original_text = paragraph.text
+        updated_text = original_text
         for placeholder, value in replacements.items():
-            if placeholder in p.text:
-                for run in p.runs:
-                    if placeholder in run.text:
-                        run.text = run.text.replace(placeholder, value or "")
-                if placeholder in p.text:
-                    p.text = p.text.replace(placeholder, value or "")
+            updated_text = updated_text.replace(placeholder, value or "")
+        if updated_text == original_text:
+            return
+        # Preserve typography when a placeholder lives in one run. Placeholders
+        # split by Word across multiple runs fall back to paragraph text so that
+        # no token is left visible in the student-facing document.
+        for run in paragraph.runs:
+            replaced = run.text
+            for placeholder, value in replacements.items():
+                replaced = replaced.replace(placeholder, value or "")
+            if replaced != run.text:
+                run.text = replaced
+                return
+        paragraph.text = updated_text
 
+    for paragraph in tpl_doc.paragraphs:
+        replace_in_paragraph(paragraph)
     for table in tpl_doc.tables:
         for row in table.rows:
             for cell in row.cells:
-                for p in cell.paragraphs:
-                    for placeholder, value in replacements.items():
-                        if placeholder in p.text:
-                            for run in p.runs:
-                                if placeholder in run.text:
-                                    run.text = run.text.replace(placeholder, value or "")
-                            if placeholder in p.text:
-                                p.text = p.text.replace(placeholder, value or "")
+                for paragraph in cell.paragraphs:
+                    replace_in_paragraph(paragraph)
 
-    # Insert template paragraphs before target_p
-    for p in tpl_doc.paragraphs:
-        new_p = target_p.insert_paragraph_before(p.text)
-        new_p.alignment = p.alignment
+    # Copy the template's body XML—not merely paragraph text—so tables, shading,
+    # borders, alignment, and other official layout elements remain intact.
+    for element in tpl_doc.element.body.iterchildren():
+        if element.tag.endswith("}sectPr"):
+            continue
+        target_p._p.addprevious(deepcopy(element))
+
+    page_break = target_p.insert_paragraph_before()
+    page_break.add_run().add_break(WD_BREAK.PAGE)
 
 def _insert_builtin_cover_before(target_p, cover_data: CoverPageData) -> None:
     inst_text = (cover_data.institution or "UNIVERSITY ACADEMIC SUBMISSION").upper()

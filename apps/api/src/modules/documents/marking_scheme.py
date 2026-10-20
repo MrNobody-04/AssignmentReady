@@ -25,7 +25,8 @@ def apply_marking_scheme(
     doc: docx.Document,
     scheme_data: MarkingSchemeData,
     settings=None,
-    uploaded_file_path=None
+    uploaded_file_path=None,
+    anchor_paragraph=None,
 ) -> None:
     if not scheme_data.enabled:
         return
@@ -42,13 +43,13 @@ def apply_marking_scheme(
         ]
 
     # Find placement
-    insert_before_p = None
-    if scheme_data.placement == "before_references":
+    insert_before_p = anchor_paragraph
+    if insert_before_p is None and scheme_data.placement == "before_references":
         for p in doc.paragraphs:
             if p.text.strip().lower() in ["references", "bibliography", "works cited"]:
                 insert_before_p = p
                 break
-    elif scheme_data.placement == "after_cover":
+    elif insert_before_p is None and scheme_data.placement == "after_cover":
         # First paragraph after cover page
         for p in doc.paragraphs:
             if p.paragraph_format.page_break_before:
