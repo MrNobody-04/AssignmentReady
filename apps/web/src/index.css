@@ -104,9 +104,26 @@
   animation-play-state: paused;
 }
 
+/* Slide in from right animation */
+@keyframes slideFromRight {
+  from {
+    opacity: 0;
+    transform: translate3d(24px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-slide-from-right {
+  animation: slideFromRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee-rtl,
-  .animate-marquee-ltr {
+  .animate-marquee-ltr,
+  .animate-slide-from-right {
     animation: none;
     transform: none;
   }

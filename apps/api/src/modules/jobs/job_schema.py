@@ -197,6 +197,39 @@ class InspectionResult(BaseModel):
     has_list_of_figures: bool = False
     has_list_of_tables: bool = False
 
+# ==========================================
+# Unified Workflow & Shared Project Schemas
+# ==========================================
+
+class DocumentVersionInfo(BaseModel):
+    version_id: int
+    version_label: str
+    filename: str
+    file_type: str = "docx"
+    operation: str  # "original", "formatted", "doctor_repaired", "converted"
+    source_version_id: int | None = None
+    created_at: float
+    file_size_bytes: int
+    is_valid: bool = True
+    download_url: str
+
+class ProjectPresentationRecord(BaseModel):
+    presentation_id: str
+    source_version_id: int
+    theme: str
+    total_slides: int
+    filename: str
+    created_at: float
+    download_url: str
+    is_stale: bool = False
+
+class RubricProjectData(BaseModel):
+    filename: str
+    total_criteria_count: int
+    total_weight_found: float
+    criteria: list[dict] = Field(default_factory=list)
+    uploaded_at: float
+
 class JobStatusResponse(BaseModel):
     job_id: str
     original_filename: str
@@ -207,3 +240,26 @@ class JobStatusResponse(BaseModel):
     has_pdf_version: bool
     inspection: InspectionResult | None = None
     compliance: ComplianceReport | None = None
+    # Unified Workflow Extensions
+    project_id: str | None = None
+    current_version_id: int = 1
+    versions: list[DocumentVersionInfo] = Field(default_factory=list)
+    rubric_data: RubricProjectData | None = None
+    presentations: list[ProjectPresentationRecord] = Field(default_factory=list)
+
+class ProjectDetailResponse(BaseModel):
+    project_id: str
+    original_filename: str
+    current_version_id: int
+    versions: list[DocumentVersionInfo]
+    has_cover_template: bool
+    has_guidelines: bool
+    has_marking_scheme: bool
+    rubric_data: RubricProjectData | None = None
+    settings: FormattingSettings | None = None
+    presentations: list[ProjectPresentationRecord] = Field(default_factory=list)
+    inspection: InspectionResult | None = None
+    compliance: ComplianceReport | None = None
+    created_at: float
+    updated_at: float
+    status: str = "completed"

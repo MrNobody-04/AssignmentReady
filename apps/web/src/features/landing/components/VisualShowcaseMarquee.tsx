@@ -336,8 +336,8 @@ export const VisualShowcaseMarquee: React.FC<VisualShowcaseMarqueeProps> = ({
             aria-hidden="true"
           />
 
-          {/* Continuous Left-to-Right Marquee Slider */}
-          <div className="flex gap-4 sm:gap-6 w-max animate-marquee-ltr hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]">
+          {/* Continuous Right-to-Left Marquee Slider */}
+          <div className="flex gap-4 sm:gap-6 w-max animate-marquee-rtl hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]">
             {[...VISUAL_SHOWCASE_ITEMS, ...VISUAL_SHOWCASE_ITEMS].map((item, idx) => {
               const IconComponent = item.icon;
               return (

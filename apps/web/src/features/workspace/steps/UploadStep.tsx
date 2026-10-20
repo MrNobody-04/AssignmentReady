@@ -141,13 +141,13 @@ export const UploadStep: React.FC<UploadStepProps> = ({
   };
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
+    <div className="space-y-6 sm:space-y-8 max-w-4xl mx-auto px-1 sm:px-0">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
           Upload Your Assignment & College Assets
         </h2>
-        <p className="text-sm text-slate-600 mt-1">
+        <p className="text-xs sm:text-sm text-slate-600 mt-1">
           Upload your unformatted draft as a Microsoft Word document (.docx). You can also optionally attach your official college cover page template, guidelines, or marking rubric.
         </p>
       </div>
@@ -167,7 +167,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
       )}
 
       {/* Primary Assignment Dropzone */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-xs">
         <label className="block text-sm font-semibold text-slate-900 mb-2">
           1. Existing Assignment Manuscript <span className="text-rose-600">*</span>
         </label>
@@ -177,7 +177,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleAssignmentDrop}
             onClick={() => assignmentInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
+            className={`border-2 border-dashed rounded-xl p-5 sm:p-8 text-center cursor-pointer transition-colors ${
               isUploading
                 ? 'border-academic-blue bg-blue-50/50'
                 : 'border-slate-300 hover:border-academic-navy hover:bg-slate-50'

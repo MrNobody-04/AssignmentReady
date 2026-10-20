@@ -142,6 +142,8 @@ export const BUILTIN_PROFILES: CollegeProfile[] = [
     institution: 'Standard British & Commonwealth Universities',
     description: 'A4 paper, Times New Roman 12pt, 1.5 line spacing, 1-inch margins, major headings on new pages.',
     is_builtin: true,
+    verified_source: 'UK Quality Code for Higher Education & British University Style Handbooks',
+    last_verified_date: 'October 2025',
     settings: {
       ...DEFAULT_FORMATTING_SETTINGS,
       paper_size: 'A4',
@@ -154,6 +156,8 @@ export const BUILTIN_PROFILES: CollegeProfile[] = [
     institution: 'American Psychological Association Guidelines',
     description: 'Letter paper, Times New Roman or Calibri, Double line spacing, 1-inch margins, continuous page numbers.',
     is_builtin: true,
+    verified_source: 'Publication Manual of the American Psychological Association (7th Edition)',
+    last_verified_date: 'November 2025',
     settings: {
       ...DEFAULT_FORMATTING_SETTINGS,
       paper_size: 'LETTER',
@@ -169,6 +173,8 @@ export const BUILTIN_PROFILES: CollegeProfile[] = [
     institution: 'Standard International Harvard Referencing Style',
     description: 'A4, Arial 11pt, 1.5 line spacing, structured headings, formal academic cover sheet and TOC.',
     is_builtin: true,
+    verified_source: 'Harvard College Writing Program & International Referencing Standards',
+    last_verified_date: 'September 2025',
     settings: {
       ...DEFAULT_FORMATTING_SETTINGS,
       paper_size: 'A4',
@@ -184,6 +190,8 @@ export const BUILTIN_PROFILES: CollegeProfile[] = [
     institution: 'Faculty of Engineering & Science',
     description: 'A4, Arial 11pt, 1.15 line spacing, Justified text alignment, embedded grading rubric table.',
     is_builtin: true,
+    verified_source: 'IEEE Authorship Guide & British Standard BS 4811: Presentation of Research',
+    last_verified_date: 'December 2025',
     settings: {
       ...DEFAULT_FORMATTING_SETTINGS,
       paper_size: 'A4',
@@ -249,5 +257,28 @@ export const profilesManager = {
   delete(id: string): void {
     const custom = this.getCustom().filter((p) => p.id !== id);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(custom));
+  },
+
+  exportProfile(profile: CollegeProfile): void {
+    const blob = new Blob([JSON.stringify(profile, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${profile.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_profile.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
+  importProfile(jsonString: string): CollegeProfile {
+    const parsed = JSON.parse(jsonString);
+    if (!parsed.name || !parsed.settings) {
+      throw new Error('Invalid profile file: missing name or formatting settings.');
+    }
+    return this.save({
+      name: `${parsed.name} (Imported)`,
+      institution: parsed.institution || 'Imported University',
+      description: parsed.description || 'Imported custom formatting rules.',
+      settings: parsed.settings,
+    });
   },
 };

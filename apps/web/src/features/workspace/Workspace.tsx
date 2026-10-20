@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Eye } from 'lucide-react';
 import { ProgressSteps } from '../../components/layout/ProgressSteps';
 import { UploadStep } from './steps/UploadStep';
 import { CollegeRulesStep } from './steps/CollegeRulesStep';
@@ -8,6 +8,7 @@ import { FrontMatterStep } from './steps/FrontMatterStep';
 import { RequirementsStep } from './steps/RequirementsStep';
 import { ReviewComplianceStep } from './steps/ReviewComplianceStep';
 import { DownloadStep } from './steps/DownloadStep';
+import { DocumentPreviewModal } from '../../components/preview/DocumentPreviewModal';
 import {
   FormattingSettings,
   InspectionResult,
@@ -20,6 +21,12 @@ interface WorkspaceProps {
   onUpdateSettings: (settings: FormattingSettings) => void;
   onOpenProfiles: () => void;
   initialFile?: File | null;
+  activeJobId?: string | null;
+  onJobCreated?: (jobId: string, filename: string) => void;
+  onFormattingCompleted?: (jobId: string, versionId: number) => void;
+  onCheckWithDoctor?: (jobId: string, versionId?: number) => void;
+  onCreatePowerPoint?: (jobId: string, versionId?: number) => void;
+  onOpenRubric?: (jobId: string) => void;
 }
 
 export const Workspace: React.FC<WorkspaceProps> = ({
@@ -27,11 +34,23 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   onUpdateSettings,
   onOpenProfiles,
   initialFile,
+  activeJobId,
+  onJobCreated,
+  onFormattingCompleted,
+  onCheckWithDoctor,
+  onCreatePowerPoint,
+  onOpenRubric: _onOpenRubric,
 }) => {
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [jobId, setJobId] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(activeJobId || null);
   const [assignmentFile, setAssignmentFile] = useState<File | null>(initialFile || null);
   const [inspection, setInspection] = useState<InspectionResult | null>(null);
+
+  React.useEffect(() => {
+    if (activeJobId && !jobId) {
+      setJobId(activeJobId);
+    }
+  }, [activeJobId, jobId]);
 
   React.useEffect(() => {
     if (initialFile && !assignmentFile) {
@@ -47,11 +66,13 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   // Results
   const [compliance, setCompliance] = useState<ComplianceReport | null>(null);
   const [hasPdfVersion, setHasPdfVersion] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const handleAssignmentUploaded = (id: string, file: File, inspectRes: InspectionResult) => {
     setJobId(id);
     setAssignmentFile(file);
     setInspection(inspectRes);
+    onJobCreated?.(id, file.name);
 
     // If inspection detected headings or cover markers, update default title
     const updatedSettings: FormattingSettings = { ...settings };
@@ -71,6 +92,9 @@ export const Workspace: React.FC<WorkspaceProps> = ({
   const handleFormattingCompleted = (comp: ComplianceReport, hasPdf = false) => {
     setCompliance(comp);
     setHasPdfVersion(hasPdf);
+    if (jobId) {
+      onFormattingCompleted?.(jobId, 2);
+    }
     setCurrentStep(7); // Move to Download
   };
 
@@ -86,20 +110,33 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     <div className="min-h-[calc(100vh-16rem)] flex flex-col">
       {/* Workspace Sub-header Bar */}
       <ScrollReveal delay={0}>
-        <div className="bg-slate-100/70 border-b border-slate-200 py-2 px-4 sm:px-8 flex items-center justify-between text-xs text-slate-600">
-          <div className="flex items-center gap-2.5">
-            <img src="/logo.jpg" alt="Logo" className="w-4 h-4 rounded object-contain" />
-            <span className="font-semibold text-slate-800">Formatting Workspace:</span>
-            <span>{assignmentFile ? assignmentFile.name : 'Upload assignment to begin'}</span>
+        <div className="bg-slate-100/80 border-b border-slate-200 py-2 sm:py-2.5 px-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-600">
+          <div className="flex items-center gap-2 min-w-0">
+            <img src="/logo.jpg" alt="Logo" className="w-4 h-4 rounded object-contain shrink-0" />
+            <span className="font-semibold text-slate-800 whitespace-nowrap">Formatting Workspace:</span>
+            <span className="truncate text-slate-600 font-medium max-w-[170px] sm:max-w-xs md:max-w-md">
+              {assignmentFile ? assignmentFile.name : 'Upload assignment to begin'}
+            </span>
           </div>
-          <button
-            type="button"
-            onClick={onOpenProfiles}
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors"
-          >
-            <BookOpen className="w-3.5 h-3.5 text-academic-blue" />
-            <span>Load College Preset Profile</span>
-          </button>
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsPreviewOpen(true)}
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-md bg-white border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer text-xs"
+            >
+              <Eye className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Preview</span>
+            </button>
+            <button
+              type="button"
+              onClick={onOpenProfiles}
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-md bg-white border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer text-xs"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-academic-blue" />
+              <span className="hidden sm:inline">Load College Profile</span>
+              <span className="sm:hidden">College Profiles</span>
+            </button>
+          </div>
         </div>
       </ScrollReveal>
 
@@ -195,10 +232,21 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               inspection={inspection}
               onModifySettings={() => setCurrentStep(2)}
               onReset={handleReset}
+              onOpenPreview={() => setIsPreviewOpen(true)}
+              onCheckWithDoctor={() => onCheckWithDoctor?.(jobId, 2)}
+              onCreatePowerPoint={() => onCreatePowerPoint?.(jobId, 2)}
             />
           )}
         </ScrollReveal>
       </main>
+
+      <DocumentPreviewModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        settings={settings}
+        inspection={inspection}
+        filename={assignmentFile?.name}
+      />
     </div>
   );
 };

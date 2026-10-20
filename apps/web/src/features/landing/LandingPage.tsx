@@ -9,6 +9,9 @@ import {
   Sliders,
   FileText,
   Presentation,
+  Stethoscope,
+  FileType,
+  FolderClock,
 } from 'lucide-react';
 import { HeroShowcase } from './components/HeroShowcase';
 import { VisualShowcaseMarquee } from './components/VisualShowcaseMarquee';
@@ -20,6 +23,9 @@ interface LandingPageProps {
   onCreatePresentation: (file?: File) => void;
   onOpenProfiles: () => void;
   onOpenConverter?: () => void;
+  onOpenDoctor?: () => void;
+  onOpenRubric?: () => void;
+  onOpenProjects?: () => void;
 }
 
 const FEATURE_STANDARDS = [
@@ -108,6 +114,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onCreatePresentation,
   onOpenProfiles,
   onOpenConverter,
+  onOpenDoctor,
+  onOpenRubric,
+  onOpenProjects,
 }) => {
   return (
     <div className="space-y-20 pb-16">
@@ -218,6 +227,171 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ==================================================== */}
+      {/* SIX DEDICATED ACADEMIC WORKSPACES */}
+      {/* ==================================================== */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal delay={0}>
+          <div className="text-center mb-10">
+            <div className="tracking-widest text-xs font-bold text-academic-navy uppercase mb-1">
+              Student Productivity Architecture
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Six Dedicated Academic Workspaces
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-xl mx-auto">
+              Choose the exact tool for your task. Each workspace executes genuine deterministic processing with 100% private local retention.
+            </p>
+          </div>
+        </ScrollReveal>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {/* Workspace 1 */}
+          <ScrollReveal delay={50}>
+            <div
+              onClick={() => onStartFormatting()}
+              className="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-academic-blue/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group h-full"
+            >
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-xl bg-blue-50 text-academic-blue flex items-center justify-center border border-blue-100 group-hover:scale-105 transition-transform">
+                  <Sliders className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-base text-slate-900 group-hover:text-academic-navy transition-colors">
+                  1. Format My Assignment
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Apply institutional typography, 1-inch margins, cover pages, dynamic Table of Contents, and section-aware Roman/Arabic page numbering to Word documents.
+                </p>
+              </div>
+              <div className="pt-4 flex items-center gap-1.5 text-xs font-bold text-academic-navy">
+                <span>Open Formatter</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* Workspace 2 */}
+          <ScrollReveal delay={100}>
+            <div
+              onClick={() => onCreatePresentation()}
+              className="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-indigo-400/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group h-full"
+            >
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 group-hover:scale-105 transition-transform">
+                  <Presentation className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-base text-slate-900 group-hover:text-indigo-600 transition-colors">
+                  2. Create a PowerPoint
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Synthesize editable 16:9 widescreen presentations across 8 academic themes directly from your coursework report or research draft with speaker notes.
+                </p>
+              </div>
+              <div className="pt-4 flex items-center gap-1.5 text-xs font-bold text-indigo-600">
+                <span>Open Slide Studio</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* Workspace 3 */}
+          <ScrollReveal delay={150}>
+            <div
+              onClick={() => onOpenDoctor && onOpenDoctor()}
+              className="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-emerald-400/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group h-full"
+            >
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 group-hover:scale-105 transition-transform">
+                  <Stethoscope className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-base text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  3. Check My Assignment (Doctor)
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Diagnose heading hierarchy jumps, font mismatches, uncaptioned figures, missing cover pages, and citation inconsistencies with one-click automated repair.
+                </p>
+              </div>
+              <div className="pt-4 flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+                <span>Run Diagnostic Health Check</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* Workspace 4 */}
+          <ScrollReveal delay={200}>
+            <div
+              onClick={() => onOpenConverter && onOpenConverter()}
+              className="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-teal-400/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group h-full"
+            >
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-100 group-hover:scale-105 transition-transform">
+                  <FileType className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-base text-slate-900 group-hover:text-teal-700 transition-colors">
+                  4. Convert My Files
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Universal converter between PDF, Word (.docx), Excel (.xlsx), CSV, plain text, and high-resolution images with real validation.
+                </p>
+              </div>
+              <div className="pt-4 flex items-center gap-1.5 text-xs font-bold text-teal-700">
+                <span>Open File Converter</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* Workspace 5 */}
+          <ScrollReveal delay={250}>
+            <div
+              onClick={() => onOpenRubric && onOpenRubric()}
+              className="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-purple-400/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group h-full"
+            >
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100 group-hover:scale-105 transition-transform">
+                  <FileSpreadsheet className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-base text-slate-900 group-hover:text-purple-700 transition-colors">
+                  5. Analyze My Marking Scheme
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Upload your lecturer's assessment rubric (PDF, Word, or Excel) to extract weighting, criteria, and map evidence directly from your assignment draft.
+                </p>
+              </div>
+              <div className="pt-4 flex items-center gap-1.5 text-xs font-bold text-purple-700">
+                <span>Evaluate Against Rubric</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* Workspace 6 */}
+          <ScrollReveal delay={300}>
+            <div
+              onClick={() => onOpenProjects && onOpenProjects()}
+              className="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-400/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group h-full"
+            >
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200 group-hover:scale-105 transition-transform">
+                  <FolderClock className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-base text-slate-900 group-hover:text-slate-800 transition-colors">
+                  6. My Projects & Recent Files
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Track your recently formatted documents, presentation decks, converted downloads, and diagnostic reports securely in private local storage.
+                </p>
+              </div>
+              <div className="pt-4 flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                <span>View Student Workspace</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      {/* ==================================================== */}
       {/* VISUAL ARTIFACTS SHOWCASE - CONTINUOUS MARQUEE SLIDER */}
       {/* ==================================================== */}
       <VisualShowcaseMarquee
@@ -314,19 +488,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </p>
             </div>
 
-            {/* 3 Minimal Icon-Free Metric Pills */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full md:w-auto shrink-0">
-              <div className="bg-slate-50 border border-slate-200/80 rounded-xl px-5 py-4 text-center min-w-[120px]">
-                <div className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">0%</div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5 whitespace-nowrap">AI Training</div>
+            {/* 3 Minimal Icon-Free Metric Pills - Compact 3-Column on Mobile and Desktop */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full md:w-auto shrink-0 mt-4 md:mt-0">
+              <div className="bg-slate-50 border border-slate-200/90 rounded-xl px-2 sm:px-4 py-2.5 sm:py-3.5 text-center">
+                <div className="text-base sm:text-2xl font-extrabold text-slate-900 tracking-tight">0%</div>
+                <div className="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5 whitespace-nowrap">AI Training</div>
               </div>
-              <div className="bg-slate-50 border border-slate-200/80 rounded-xl px-5 py-4 text-center min-w-[120px]">
-                <div className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">60 Min</div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5 whitespace-nowrap">Auto Purge</div>
+              <div className="bg-slate-50 border border-slate-200/90 rounded-xl px-2 sm:px-4 py-2.5 sm:py-3.5 text-center">
+                <div className="text-base sm:text-2xl font-extrabold text-slate-900 tracking-tight">60 Min</div>
+                <div className="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5 whitespace-nowrap">Auto Purge</div>
               </div>
-              <div className="bg-slate-50 border border-slate-200/80 rounded-xl px-5 py-4 text-center min-w-[120px]">
-                <div className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">100%</div>
-                <div className="text-xs text-slate-500 font-medium mt-0.5 whitespace-nowrap">Local XML</div>
+              <div className="bg-slate-50 border border-slate-200/90 rounded-xl px-2 sm:px-4 py-2.5 sm:py-3.5 text-center">
+                <div className="text-base sm:text-2xl font-extrabold text-slate-900 tracking-tight">100%</div>
+                <div className="text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5 whitespace-nowrap">Local XML</div>
               </div>
             </div>
           </div>

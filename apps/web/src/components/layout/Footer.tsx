@@ -40,6 +40,10 @@ export const Footer: React.FC<FooterProps> = ({
               <img
                 src="/logo.jpg"
                 alt="AssignmentReady Logo"
+                width={40}
+                height={40}
+                loading="lazy"
+                decoding="async"
                 className="w-10 h-10 rounded-xl object-contain bg-white shadow-md p-0.5"
               />
               <div>
@@ -100,7 +104,7 @@ export const Footer: React.FC<FooterProps> = ({
               <li>
                 <button
                   onClick={() => onNavigate?.('presentation')}
-                  className="flex items-center gap-2 hover:text-white hover:translate-x-1 transition-all duration-200"
+                  className="flex items-center gap-2 hover:text-white hover:translate-x-1 transition-all duration-200 cursor-pointer"
                 >
                   <Presentation className="w-3.5 h-3.5 text-indigo-400" />
                   <span>PowerPoint Slides</span>
@@ -108,8 +112,17 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
               <li>
                 <button
+                  onClick={() => onNavigate?.('doctor')}
+                  className="flex items-center gap-2 hover:text-white hover:translate-x-1 transition-all duration-200 cursor-pointer"
+                >
+                  <ChevronRight className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Assignment Doctor</span>
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => onNavigate?.('converter')}
-                  className="flex items-center gap-2 hover:text-white hover:translate-x-1 transition-all duration-200"
+                  className="flex items-center gap-2 hover:text-white hover:translate-x-1 transition-all duration-200 cursor-pointer"
                 >
                   <FileType className="w-3.5 h-3.5 text-indigo-400" />
                   <span>File Converter</span>
@@ -117,11 +130,29 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
               <li>
                 <button
+                  onClick={() => onNavigate?.('rubric')}
+                  className="flex items-center gap-2 hover:text-white hover:translate-x-1 transition-all duration-200 cursor-pointer"
+                >
+                  <ChevronRight className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Marking Scheme Analyzer</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate?.('projects')}
+                  className="flex items-center gap-2 hover:text-white hover:translate-x-1 transition-all duration-200 cursor-pointer"
+                >
+                  <ChevronRight className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>My Projects & Recent Files</span>
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={onOpenProfiles}
-                  className="flex items-center gap-2 hover:text-white hover:translate-x-1 transition-all duration-200"
+                  className="flex items-center gap-2 hover:text-white hover:translate-x-1 transition-all duration-200 cursor-pointer"
                 >
                   <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>College Profiles</span>
+                  <span>College Rules Library</span>
                 </button>
               </li>
             </ul>

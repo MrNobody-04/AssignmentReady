@@ -130,4 +130,111 @@ export const api = {
     const res = await fetch(`${API_BASE}/jobs/${jobId}`, { method: 'DELETE' });
     return handleResponse(res);
   },
+
+  // ==========================================
+  // Assignment Doctor
+  // ==========================================
+  async diagnoseUploadedAssignment(file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_BASE}/doctor/diagnose-upload`, {
+      method: 'POST',
+      body: formData,
+    });
+    return handleResponse(res);
+  },
+
+  async diagnoseExistingJob(jobId: string, versionId?: number): Promise<any> {
+    const url = versionId ? `${API_BASE}/doctor/diagnose/${jobId}?version_id=${versionId}` : `${API_BASE}/doctor/diagnose/${jobId}`;
+    const res = await fetch(url);
+    return handleResponse(res);
+  },
+
+  async fixAssignmentIssues(
+    jobId: string,
+    fixAllSafe: boolean,
+    selectedActionIds: string[],
+    settings?: FormattingSettings,
+    versionId?: number
+  ): Promise<any> {
+    const res = await fetch(`${API_BASE}/doctor/fix/${jobId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fix_all_safe: fixAllSafe,
+        selected_action_ids: selectedActionIds,
+        settings: settings || undefined,
+        version_id: versionId || undefined,
+      }),
+    });
+    return handleResponse(res);
+  },
+
+  // ==========================================
+  // Document Versions & Shared Project Workflow
+  // ==========================================
+  async getDocumentVersions(jobId: string): Promise<any> {
+    const res = await fetch(`${API_BASE}/jobs/${jobId}/versions`);
+    return handleResponse(res);
+  },
+
+  async setDocumentVersion(jobId: string, versionId: number): Promise<any> {
+    const res = await fetch(`${API_BASE}/jobs/${jobId}/versions/${versionId}/set-current`, {
+      method: 'POST',
+    });
+    return handleResponse(res);
+  },
+
+  async getProjectRubricAnalysis(jobId: string, versionId?: number): Promise<any> {
+    const url = versionId
+      ? `${API_BASE}/jobs/${jobId}/rubric-analysis?version_id=${versionId}`
+      : `${API_BASE}/jobs/${jobId}/rubric-analysis`;
+    const res = await fetch(url);
+    return handleResponse(res);
+  },
+
+  async planProjectSlides(jobId: string, req: any): Promise<any> {
+    const res = await fetch(`${API_BASE}/presentation/project/${jobId}/plan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req),
+    });
+    return handleResponse(res);
+  },
+
+  async generateProjectPresentation(jobId: string, req: any): Promise<any> {
+    const res = await fetch(`${API_BASE}/presentation/project/${jobId}/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req),
+    });
+    return handleResponse(res);
+  },
+
+  async getProjectPresentationStatus(jobId: string): Promise<any> {
+    const res = await fetch(`${API_BASE}/presentation/project/${jobId}/status`);
+    return handleResponse(res);
+  },
+
+  // ==========================================
+  // Marking Scheme & Rubric
+  // ==========================================
+  async analyzeRubricFile(file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_BASE}/presentation/analyze-rubric`, {
+      method: 'POST',
+      body: formData,
+    });
+    return handleResponse(res);
+  },
+
+  async mapRubricCompliance(report: any, criteria: any[]): Promise<any> {
+    const res = await fetch(`${API_BASE}/presentation/map-compliance`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ report, criteria }),
+    });
+    return handleResponse(res);
+  },
 };

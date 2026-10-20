@@ -192,6 +192,88 @@ export async function extractPresentationOutline(file: File): Promise<Presentati
   return await res.json();
 }
 
+export async function analyzeReport(file: File): Promise<any> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch(`${API_BASE}/presentation/analyze-report`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData?.error?.message || errData?.detail || 'Failed to analyze report');
+  }
+
+  return await res.json();
+}
+
+export async function analyzeRubric(file: File): Promise<any> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch(`${API_BASE}/presentation/analyze-rubric`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData?.error?.message || errData?.detail || 'Failed to analyze rubric');
+  }
+
+  return await res.json();
+}
+
+export async function mapCompliance(report: any, criteria: any[]): Promise<any> {
+  const res = await fetch(`${API_BASE}/presentation/map-compliance`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ report, criteria }),
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData?.error?.message || errData?.detail || 'Failed to map compliance');
+  }
+
+  return await res.json();
+}
+
+export async function planSlides(payload: {
+  report: any;
+  criteria?: any[];
+  text_density?: string;
+  target_slide_count?: number;
+  audience?: string;
+  presentation_type?: string;
+  duration_minutes?: number;
+  include_notes?: boolean;
+  include_references?: boolean;
+  include_qa?: boolean;
+  transition_type?: string;
+  animation_intensity?: string;
+  university_logo_base64?: string;
+  college_logo_base64?: string;
+  presentation_mode?: 'individual' | 'group';
+  presenters?: any[];
+  counting_mode?: 'total' | 'content_only';
+}): Promise<PresentationOutline> {
+  const res = await fetch(`${API_BASE}/presentation/plan-slides`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData?.error?.message || errData?.detail || 'Failed to plan presentation slides');
+  }
+
+  return await res.json();
+}
+
 export async function generatePresentation(
   outline: PresentationOutline,
   theme: string = 'academic_classic',

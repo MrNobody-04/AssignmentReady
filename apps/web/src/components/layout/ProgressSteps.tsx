@@ -28,10 +28,54 @@ export const ProgressSteps: React.FC<ProgressStepsProps> = ({
   onStepClick,
   canNavigateTo,
 }) => {
+  const currentStepObj = WORKSPACE_STEPS.find((s) => s.id === currentStep) || WORKSPACE_STEPS[0];
+
   return (
-    <nav aria-label="Progress" className="w-full bg-white border-b border-slate-200 py-3 shadow-xs">
+    <nav aria-label="Progress" className="w-full bg-white border-b border-slate-200 py-2.5 sm:py-3 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <ol className="flex items-center justify-between sm:justify-center sm:gap-6 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+        {/* Mobile View: High-Clarity Step Title + Segmented Progress Bar */}
+        <div className="sm:hidden">
+          <div className="flex items-center justify-between text-xs mb-2">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-academic-navy text-white text-2xs font-bold flex items-center justify-center">
+                {currentStep}
+              </span>
+              <span className="font-bold text-slate-900">
+                {currentStepObj.label.replace(/^\d+\.\s*/, '')}
+              </span>
+            </div>
+            <span className="text-2xs font-semibold text-slate-500 font-mono">
+              Step {currentStep} of {WORKSPACE_STEPS.length}
+            </span>
+          </div>
+          <div className="grid grid-cols-7 gap-1.5">
+            {WORKSPACE_STEPS.map((step) => {
+              const isCompleted = currentStep > step.id;
+              const isCurrent = currentStep === step.id;
+              const isClickable = canNavigateTo(step.id);
+              return (
+                <button
+                  key={step.id}
+                  type="button"
+                  disabled={!isClickable}
+                  onClick={() => isClickable && onStepClick(step.id)}
+                  className={`h-2 rounded-full transition-all ${
+                    isCurrent
+                      ? 'bg-academic-navy shadow-xs ring-2 ring-indigo-200'
+                      : isCompleted
+                      ? 'bg-emerald-500'
+                      : 'bg-slate-200'
+                  } ${isClickable ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}
+                  title={step.label}
+                  aria-label={step.label}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Desktop View: Full Horizontal Stepper with Connecting Lines */}
+        <ol className="hidden sm:flex items-center justify-center gap-2 md:gap-4 lg:gap-6">
           {WORKSPACE_STEPS.map((step, idx) => {
             const isCompleted = currentStep > step.id;
             const isCurrent = currentStep === step.id;
@@ -43,7 +87,7 @@ export const ProgressSteps: React.FC<ProgressStepsProps> = ({
                   type="button"
                   disabled={!isClickable}
                   onClick={() => isClickable && onStepClick(step.id)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all focus:outline-hidden ${
+                  className={`flex items-center gap-2 px-2.5 md:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all focus:outline-hidden ${
                     isCurrent
                       ? 'bg-academic-navy text-white shadow-xs'
                       : isCompleted
@@ -62,11 +106,11 @@ export const ProgressSteps: React.FC<ProgressStepsProps> = ({
                   >
                     {isCompleted ? <Check className="w-3 h-3 stroke-[3]" /> : step.id}
                   </span>
-                  <span className="hidden sm:inline">{step.label}</span>
+                  <span>{step.label}</span>
                 </button>
 
                 {idx < WORKSPACE_STEPS.length - 1 && (
-                  <div className="w-4 sm:w-8 h-0.5 bg-slate-200 mx-1 sm:mx-2 shrink-0" />
+                  <div className="w-3 md:w-6 h-0.5 bg-slate-200 mx-1 md:mx-2 shrink-0" />
                 )}
               </li>
             );
