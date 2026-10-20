@@ -1132,15 +1132,16 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
               </div>
 
               {/* Presentation Mode Selector: Individual vs Group */}
-              <div className="space-y-3 p-4 bg-slate-50/80 rounded-xl border border-slate-200">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="space-y-3 p-4 bg-slate-50/70 rounded-xl border border-slate-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                   <label className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-indigo-600" /> Presentation Mode
+                    <Users className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Presenter Setup</span>
                   </label>
-                  <span className="text-2xs text-slate-500 font-medium">
+                  <span className="text-[11px] text-slate-500 font-medium">
                     {presentationMode === 'group'
-                      ? 'Team defense with automated slide distribution & speaker notes'
-                      : 'Single speaker defense / assignment presentation'}
+                      ? 'Team presentation with individual speaker assignments'
+                      : 'Single student presenter'}
                   </span>
                 </div>
 
@@ -1151,23 +1152,21 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
                       setPresentationMode('individual');
                       setOutline((prev) => ({ ...prev, presentation_mode: 'individual' }));
                     }}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
                       presentationMode === 'individual'
-                        ? 'bg-white border-academic-navy ring-2 ring-academic-navy/20 shadow-xs'
+                        ? 'bg-white border-academic-navy ring-2 ring-academic-navy/20 shadow-2xs'
                         : 'bg-white/60 border-slate-200 text-slate-600 hover:bg-white'
                     }`}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
-                        presentationMode === 'individual' ? 'bg-academic-navy text-white' : 'bg-slate-100 text-slate-600'
-                      }`}>
-                        👤
-                      </div>
-                      <span className="text-xs font-bold text-slate-900">Individual Presentation</span>
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${
+                      presentationMode === 'individual' ? 'bg-academic-navy text-white' : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      👤
                     </div>
-                    <p className="text-2xs text-slate-500">
-                      Single student presenter. Clean title slide without duplicate labels.
-                    </p>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">Individual Presentation</div>
+                      <p className="text-[10.5px] text-slate-500">Single candidate defense</p>
+                    </div>
                   </button>
 
                   <button
@@ -1176,35 +1175,35 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
                       setPresentationMode('group');
                       setOutline((prev) => ({ ...prev, presentation_mode: 'group', presenters }));
                     }}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
                       presentationMode === 'group'
-                        ? 'bg-white border-academic-navy ring-2 ring-academic-navy/20 shadow-xs'
+                        ? 'bg-white border-academic-navy ring-2 ring-academic-navy/20 shadow-2xs'
                         : 'bg-white/60 border-slate-200 text-slate-600 hover:bg-white'
                     }`}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
-                        presentationMode === 'group' ? 'bg-academic-navy text-white' : 'bg-slate-100 text-slate-600'
-                      }`}>
-                        👥
-                      </div>
-                      <span className="text-xs font-bold text-slate-900">Group Presentation</span>
-                      <span className="text-3xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
-                        Multi-Presenter
-                      </span>
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${
+                      presentationMode === 'group' ? 'bg-academic-navy text-white' : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      👥
                     </div>
-                    <p className="text-2xs text-slate-500">
-                      Multiple presenters with roles, student IDs, and assigned slide speaking cues.
-                    </p>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                        <span>Group Presentation</span>
+                        <span className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-amber-100 text-amber-800">
+                          Team
+                        </span>
+                      </div>
+                      <p className="text-[10.5px] text-slate-500">Multi-presenter speaking cues</p>
+                    </div>
                   </button>
                 </div>
 
                 {/* Individual Presenter Input Row */}
                 {presentationMode === 'individual' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <div>
-                      <label className="text-2xs font-bold text-slate-600 block mb-1">
-                        Presenter Name
+                      <label className="text-[11px] font-semibold text-slate-700 block mb-1">
+                        Presenter Full Name
                       </label>
                       <input
                         type="text"
@@ -1219,11 +1218,11 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
                           }
                         }}
                         placeholder="e.g. Sujan G.C."
-                        className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-indigo-500 font-medium"
                       />
                     </div>
                     <div>
-                      <label className="text-2xs font-bold text-slate-600 block mb-1">
+                      <label className="text-[11px] font-semibold text-slate-700 block mb-1">
                         Student ID / Roll No (Optional)
                       </label>
                       <input
@@ -1239,7 +1238,7 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
                           }
                         }}
                         placeholder="e.g. 771234"
-                        className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
+                        className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-indigo-500 font-mono"
                       />
                     </div>
                   </div>
@@ -1247,7 +1246,7 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
 
                 {/* Group Presenter Manager */}
                 {presentationMode === 'group' && (
-                  <div className="space-y-3 pt-2">
+                  <div className="space-y-3 pt-1">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-slate-800">
                         Configured Team Members ({presenters.length})
@@ -1341,18 +1340,21 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
                 )}
               </div>
 
-              {/* Slide Counting Mode: Mode A (Total Slides) vs Mode B (Content Slides Only) */}
-              <div className="space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
+              {/* Slide Counting Mode Selector: Mode A vs Mode B */}
+              <div className="space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                   <label className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-indigo-600" /> Slide Counting Mode
+                    <Layers className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Slide Budget Mode</span>
                   </label>
-                  <span className="text-2xs text-slate-500 font-medium">
-                    Strict mathematical slide budgeting
+                  <span className="text-[11px] font-mono text-indigo-900 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-md">
+                    {countingMode === 'total'
+                      ? `1 Title + ${Math.max(1, targetSlideCount - 2)} Content + 1 Conclusion = ${targetSlideCount} Slides`
+                      : `${targetSlideCount} Content + 1 Title + 1 Conclusion = ${targetSlideCount + 2} Slides`}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -1361,24 +1363,19 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
                     }}
                     className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                       countingMode === 'total'
-                        ? 'bg-indigo-50/50 border-indigo-600 ring-2 ring-indigo-500/20 shadow-xs'
+                        ? 'bg-indigo-50/70 border-indigo-600 ring-2 ring-indigo-500/20 shadow-2xs'
                         : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-900">
-                        Mode A: Total Slide Count
-                      </span>
-                      <span className="text-3xs font-bold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800">
-                        Strict Total
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-900">Total Slide Count (Fixed Deck)</span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800">
+                        Mode A
                       </span>
                     </div>
-                    <p className="text-2xs text-slate-600 mb-2">
-                      Requested number includes Title, Body Content, and Conclusion. Total slides in generated PPTX = <strong>{targetSlideCount}</strong>.
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Total deck is strictly capped at {targetSlideCount} slides, including Title and Conclusion.
                     </p>
-                    <div className="text-3xs font-mono font-semibold text-indigo-900 bg-white p-1.5 rounded-lg border border-indigo-100">
-                      1 Title + {Math.max(1, targetSlideCount - 2)} Content + 1 Conclusion = {targetSlideCount} slides
-                    </div>
                   </button>
 
                   <button
@@ -1389,24 +1386,19 @@ export const PresentationWorkspace: React.FC<PresentationWorkspaceProps> = ({
                     }}
                     className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                       countingMode === 'content_only'
-                        ? 'bg-indigo-50/50 border-indigo-600 ring-2 ring-indigo-500/20 shadow-xs'
+                        ? 'bg-indigo-50/70 border-indigo-600 ring-2 ring-indigo-500/20 shadow-2xs'
                         : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-900">
-                        Mode B: Content Slides Only
-                      </span>
-                      <span className="text-3xs font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
-                        Body Budget
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-900">Content Slides Only (Body Budget)</span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                        Mode B
                       </span>
                     </div>
-                    <p className="text-2xs text-slate-600 mb-2">
-                      Requested number refers strictly to body content. Title (+1) and Conclusion (+1) added outside count. Total PPTX = <strong>{targetSlideCount + 2}</strong>.
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      {targetSlideCount} body slides. Title (+1) and Conclusion (+1) are added outside count.
                     </p>
-                    <div className="text-3xs font-mono font-semibold text-emerald-900 bg-white p-1.5 rounded-lg border border-emerald-100">
-                      {targetSlideCount} Content + 1 Title + 1 Conclusion = {targetSlideCount + 2} slides
-                    </div>
                   </button>
                 </div>
               </div>

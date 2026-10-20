@@ -21,9 +21,10 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
 
   if (!isOpen) return null;
 
-  const totalPages = 5;
+  const totalPages = 6;
 
   const fontFam = settings.body.font_family || 'Times New Roman';
+  const isTemplateMode = settings.cover_page.mode === 'template';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
@@ -90,85 +91,189 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
           >
             {/* PAGE 1: COVER PAGE */}
             {currentPage === 1 && (
-              <div className="flex-1 flex flex-col justify-between text-center py-6 space-y-8 animate-fadeIn">
-                <div className="space-y-1">
-                  <p className="text-xs font-bold tracking-widest uppercase text-slate-400">
-                    {settings.cover_page.institution || 'UNIVERSITY / COLLEGE NAME'}
-                  </p>
-                  <p className="text-xs text-slate-500 uppercase tracking-wider">
-                    {settings.cover_page.department || 'FACULTY / DEPARTMENT'}
-                  </p>
-                </div>
+              <div className="flex-1 flex flex-col justify-between py-4 animate-fadeIn">
+                {isTemplateMode ? (
+                  /* Official Uploaded Template Preview Mode */
+                  <div className="flex-1 flex flex-col justify-between text-center space-y-6">
+                    <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-2xs">
+                      <span>✓ Official Faculty Cover Template Active</span>
+                      <span className="text-[10px] text-emerald-600 font-normal">(.docx layout with field substitution)</span>
+                    </div>
 
-                <div className="space-y-3 py-6">
-                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-snug">
-                    {settings.cover_page.assignment_title || 'Assignment Title'}
-                  </h1>
-                  {settings.cover_page.assignment_subtitle && (
-                    <p className="text-sm text-slate-500">
-                      {settings.cover_page.assignment_subtitle}
-                    </p>
-                  )}
-                </div>
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold tracking-widest uppercase text-slate-700">
+                        {settings.cover_page.institution || 'UNIVERSITY / COLLEGE NAME'}
+                      </p>
+                      <p className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">
+                        {settings.cover_page.department || 'FACULTY / DEPARTMENT'}
+                      </p>
+                    </div>
 
-                <div className="border-t border-b border-slate-200 py-4 max-w-sm mx-auto text-xs text-slate-700 space-y-1.5 text-left w-full">
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-slate-500">Student Name:</span>
-                    <span className="font-bold text-slate-900">{settings.cover_page.student_name || 'Candidate Name'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-slate-500">Student ID:</span>
-                    <span className="font-mono text-slate-900">{settings.cover_page.student_id || 'ID / Matriculation'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-slate-500">Module / Course:</span>
-                    <span className="text-slate-900">{settings.cover_page.course || 'Course Code'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-slate-500">Lecturer:</span>
-                    <span className="text-slate-900">{settings.cover_page.lecturer_name || 'Module Tutor'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-slate-500">Submission Date:</span>
-                    <span className="text-slate-900">{settings.cover_page.submission_date}</span>
-                  </div>
-                </div>
+                    <div className="space-y-2 py-4">
+                      <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-snug">
+                        {settings.cover_page.assignment_title || 'Assignment Title'}
+                      </h1>
+                      {settings.cover_page.assignment_subtitle && (
+                        <p className="text-xs text-slate-500 italic">
+                          {settings.cover_page.assignment_subtitle}
+                        </p>
+                      )}
+                    </div>
 
-                <div className="text-[10px] text-slate-400 uppercase tracking-wider">
-                  Academic Declaration & Institutional Cover Sheet
-                </div>
+                    {/* Official Table Layout from Template */}
+                    <div className="border border-slate-300 rounded-lg overflow-hidden max-w-md mx-auto w-full text-xs text-left shadow-2xs">
+                      <div className="bg-slate-100 px-3 py-1.5 font-bold text-slate-700 border-b border-slate-300 text-[11px] uppercase tracking-wider">
+                        Official Coursework Submission Sheet
+                      </div>
+                      <div className="divide-y divide-slate-200">
+                        <div className="grid grid-cols-3 px-3 py-1.5 bg-white">
+                          <span className="font-semibold text-slate-600">Candidate Name:</span>
+                          <span className="col-span-2 font-bold text-slate-900">{settings.cover_page.student_name || 'Candidate Name'}</span>
+                        </div>
+                        <div className="grid grid-cols-3 px-3 py-1.5 bg-slate-50/50">
+                          <span className="font-semibold text-slate-600">Candidate ID / Roll:</span>
+                          <span className="col-span-2 font-mono font-bold text-slate-900">{settings.cover_page.student_id || 'ID / Matriculation'}</span>
+                        </div>
+                        <div className="grid grid-cols-3 px-3 py-1.5 bg-white">
+                          <span className="font-semibold text-slate-600">Module / Course:</span>
+                          <span className="col-span-2 text-slate-900">{settings.cover_page.course || 'Course Code'}</span>
+                        </div>
+                        <div className="grid grid-cols-3 px-3 py-1.5 bg-slate-50/50">
+                          <span className="font-semibold text-slate-600">Module Tutor:</span>
+                          <span className="col-span-2 text-slate-900">{settings.cover_page.lecturer_name || 'Module Tutor'}</span>
+                        </div>
+                        <div className="grid grid-cols-3 px-3 py-1.5 bg-white">
+                          <span className="font-semibold text-slate-600">Submission Date:</span>
+                          <span className="col-span-2 text-slate-900">{settings.cover_page.submission_date}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-[10px] text-slate-400 uppercase tracking-wider">
+                      Preserving faculty tables, logos, and custom institutional styling from uploaded .docx
+                    </div>
+                  </div>
+                ) : (
+                  /* Built-in Academic Layout */
+                  <div className="flex-1 flex flex-col justify-between text-center space-y-8 py-2">
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold tracking-widest uppercase text-slate-400">
+                        {settings.cover_page.institution || 'UNIVERSITY / COLLEGE NAME'}
+                      </p>
+                      <p className="text-xs text-slate-500 uppercase tracking-wider">
+                        {settings.cover_page.department || 'FACULTY / DEPARTMENT'}
+                      </p>
+                    </div>
+
+                    <div className="space-y-3 py-6">
+                      <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-snug">
+                        {settings.cover_page.assignment_title || 'Assignment Title'}
+                      </h1>
+                      {settings.cover_page.assignment_subtitle && (
+                        <p className="text-sm text-slate-500">
+                          {settings.cover_page.assignment_subtitle}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="border-t border-b border-slate-200 py-4 max-w-sm mx-auto text-xs text-slate-700 space-y-1.5 text-left w-full">
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-slate-500">Student Name:</span>
+                        <span className="font-bold text-slate-900">{settings.cover_page.student_name || 'Candidate Name'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-slate-500">Student ID:</span>
+                        <span className="font-mono text-slate-900">{settings.cover_page.student_id || 'ID / Matriculation'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-slate-500">Module / Course:</span>
+                        <span className="text-slate-900">{settings.cover_page.course || 'Course Code'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-slate-500">Lecturer:</span>
+                        <span className="text-slate-900">{settings.cover_page.lecturer_name || 'Module Tutor'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-slate-500">Submission Date:</span>
+                        <span className="text-slate-900">{settings.cover_page.submission_date}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-[10px] text-slate-400 uppercase tracking-wider">
+                      Academic Declaration & Institutional Cover Sheet
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* PAGE 2: FRONT MATTER / DECLARATION / TOC */}
+            {/* PAGE 2: SEPARATE DEDICATED DECLARATION OF ACADEMIC INTEGRITY */}
             {currentPage === 2 && (
-              <div className="flex-1 space-y-6 animate-fadeIn">
-                <div className="space-y-3">
+              <div className="flex-1 space-y-6 animate-fadeIn flex flex-col justify-between py-2">
+                <div className="space-y-4">
                   <h2 className="text-lg font-bold text-slate-900 pb-2 border-b border-slate-200">
                     Declaration of Academic Integrity
                   </h2>
                   <p className="text-xs text-slate-700 leading-relaxed text-justify">
-                    I hereby declare that this assignment represents my own original academic work, prepared in accordance with institutional academic integrity regulations. All secondary literature, experimental data sources, and external quotations have been duly referenced using standard scholarship apparatus.
+                    I hereby declare that this assignment represents my own original academic work, prepared in accordance with institutional academic integrity regulations and university assessment guidelines.
                   </p>
-                  <div className="pt-4 flex justify-between text-xs text-slate-500 border-b border-slate-100 pb-4">
-                    <span>Candidate Signature: _____________________</span>
-                    <span>Date: {settings.cover_page.submission_date}</span>
+                  <p className="text-xs text-slate-700 leading-relaxed text-justify">
+                    All secondary literature, experimental data sources, figures, tables, and external quotations have been duly acknowledged and referenced using the prescribed academic citation conventions. No portion of this manuscript has been submitted for assessment in any other degree program or educational institution.
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3 text-xs text-slate-600">
+                  <div className="flex flex-col sm:flex-row justify-between gap-4 pt-2">
+                    <div>
+                      <span className="font-semibold text-slate-700 block">Candidate Signature:</span>
+                      <span className="font-serif italic text-slate-900 text-sm mt-1 block">
+                        {settings.cover_page.student_name || 'Candidate Signature'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-slate-700 block">Submission Date:</span>
+                      <span className="text-slate-900 mt-1 block">
+                        {settings.cover_page.submission_date || '20 October 2026'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-3 pt-2">
-                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-                    Abstract
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed text-justify">
-                    This academic report provides a structured investigation and rigorous analysis of the subject domain. It synthesizes core theoretical frameworks, outlines investigative methodology, and presents empirical findings conforming to institutional guidelines.
-                  </p>
+                <div className="text-[10px] text-slate-400 text-center uppercase tracking-wider pt-4 border-t border-slate-100">
+                  Official Academic Integrity Statement • Section Break Follows
                 </div>
               </div>
             )}
 
-            {/* PAGE 3: TABLE OF CONTENTS */}
+            {/* PAGE 3: SEPARATE DEDICATED ABSTRACT PAGE */}
             {currentPage === 3 && (
+              <div className="flex-1 space-y-6 animate-fadeIn flex flex-col justify-between py-2">
+                <div className="space-y-4">
+                  <h2 className="text-lg font-bold text-slate-900 pb-2 border-b border-slate-200 uppercase tracking-wider text-center">
+                    Abstract
+                  </h2>
+                  <p className="text-xs text-slate-700 leading-relaxed text-justify">
+                    This academic report provides a structured investigation and rigorous analysis of the subject domain. It synthesizes core theoretical frameworks, outlines investigative methodology, and presents empirical findings conforming to institutional guidelines.
+                  </p>
+                  <p className="text-xs text-slate-700 leading-relaxed text-justify">
+                    The research evaluates the efficacy of deterministic styling pipelines against ad-hoc formatting practices across higher education coursework. Findings demonstrate significant reductions in compliance infractions, preservation of typographical hierarchy, and enhanced assessor readability.
+                  </p>
+
+                  <div className="pt-4 border-t border-slate-100">
+                    <p className="text-[11px] text-slate-600">
+                      <strong>Keywords:</strong> Academic Compliance, Document Formatting, OpenXML, Higher Education, Formative Assessment, Typographical Hierarchy.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-[10px] text-slate-400 text-center uppercase tracking-wider pt-4 border-t border-slate-100">
+                  Executive Summary • Section Break Follows
+                </div>
+              </div>
+            )}
+
+            {/* PAGE 4: TABLE OF CONTENTS */}
+            {currentPage === 4 && (
               <div className="flex-1 space-y-4 animate-fadeIn">
                 <h2 className="text-lg font-bold text-slate-900 pb-2 border-b border-slate-200">
                   {settings.table_of_contents.title || 'Table of Contents'}
@@ -201,8 +306,8 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
               </div>
             )}
 
-            {/* PAGE 4: BODY CONTENT WITH CHAPTER HEADINGS */}
-            {currentPage === 4 && (
+            {/* PAGE 5: BODY CONTENT WITH CHAPTER HEADINGS */}
+            {currentPage === 5 && (
               <div className="flex-1 space-y-4 animate-fadeIn">
                 <h1 className="text-lg font-bold text-academic-blue pb-2 border-b border-slate-200">
                   1. Introduction & Problem Statement
@@ -227,8 +332,8 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
               </div>
             )}
 
-            {/* PAGE 5: REFERENCES SECTION */}
-            {currentPage === 5 && (
+            {/* PAGE 6: REFERENCES SECTION */}
+            {currentPage === 6 && (
               <div className="flex-1 space-y-4 animate-fadeIn">
                 <h1 className="text-lg font-bold text-academic-blue pb-2 border-b border-slate-200">
                   References
@@ -254,9 +359,13 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
               <span>
                 {currentPage === 1
                   ? '[No Page Number on Cover]'
-                  : currentPage <= 3
-                  ? `[Roman Front Matter: ${currentPage === 2 ? 'i' : 'ii'}]`
-                  : `Page ${currentPage - 3}`}
+                  : currentPage === 2
+                  ? '[Roman Front Matter: i]'
+                  : currentPage === 3
+                  ? '[Roman Front Matter: ii]'
+                  : currentPage === 4
+                  ? '[Roman Front Matter: iii]'
+                  : `Page ${currentPage - 4}`}
               </span>
             </div>
           </div>

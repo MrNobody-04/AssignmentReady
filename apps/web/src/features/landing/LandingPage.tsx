@@ -2,9 +2,7 @@ import React from 'react';
 import {
   ArrowRight,
   BookOpen,
-  FileCheck2,
   Layers,
-  CheckCircle2,
   Sliders,
   FileText,
   Presentation,
@@ -20,94 +18,19 @@ interface LandingPageProps {
   onCreatePresentation: (file?: File) => void;
   onOpenProfiles: () => void;
   onOpenDoctor?: () => void;
+  onOpenConverter?: () => void;
+  onOpenRubric?: () => void;
+  onOpenProjects?: () => void;
 }
-
-const FEATURE_STANDARDS = [
-  {
-    id: 'typographic-precision',
-    icon: Sliders,
-    iconBg: 'bg-blue-50 text-academic-blue',
-    checkColor: 'text-academic-blue',
-    title: 'Typographic Precision',
-    description:
-      'Configures exact font families (Times New Roman, Arial, Calibri), point sizes, 1.5/2.0 line spacing, paragraph space-after, and 1-inch margins.',
-    bullets: [
-      'Distinct H1, H2, H3 hierarchy',
-      'Automatic page break on major headings',
-    ],
-  },
-  {
-    id: 'powerpoint-decks',
-    icon: Presentation,
-    iconBg: 'bg-indigo-50 text-indigo-600',
-    checkColor: 'text-indigo-600',
-    title: 'PowerPoint Presentation Decks',
-    description:
-      'Automatically transform assignment reports into editable 16:9 widescreen PowerPoint slides with 5 academic themes, bullet points, and card layouts.',
-    bullets: [
-      'Academic Classic & Modern Minimal',
-      'Editable in PowerPoint, Keynote & Slides',
-    ],
-  },
-  {
-    id: 'official-cover-page',
-    icon: Layers,
-    iconBg: 'bg-blue-50 text-academic-navy',
-    checkColor: 'text-academic-navy',
-    title: 'Official Cover Page Replacement',
-    description:
-      'Upload your official university cover page template (.docx) or generate a clean institutional title page without disturbing existing body text.',
-    bullets: [
-      'Course code, module & lecturer metadata',
-      'Replaces raw AI title pages cleanly',
-    ],
-  },
-  {
-    id: 'marking-scheme',
-    icon: FileSpreadsheet,
-    iconBg: 'bg-amber-50 text-amber-600',
-    checkColor: 'text-amber-600',
-    title: 'Marking Scheme & Rubrics',
-    description:
-      'Extract assessment criteria from PDF/DOCX guidelines or attach a structured marking rubric table directly into the document for assessor feedback.',
-    bullets: [
-      'Criteria weights & maximum mark breakdown',
-      'Configurable rubric placement',
-    ],
-  },
-  {
-    id: 'page-numbering',
-    icon: FileText,
-    iconBg: 'bg-purple-50 text-purple-600',
-    checkColor: 'text-purple-600',
-    title: 'Section-Aware Page Numbering',
-    description:
-      'Real Word XML field codes (PAGE / NUMPAGES). Hides numbers on the cover page, uses Roman numerals (i, ii, iii) on prelims, and restarts Arabic numerals at the Introduction.',
-    bullets: [
-      'Dynamic Table of Contents (TOC)',
-      'Automatic section breaks',
-    ],
-  },
-  {
-    id: 'compliance-auditor',
-    icon: FileCheck2,
-    iconBg: 'bg-emerald-50 text-emerald-600',
-    checkColor: 'text-emerald-600',
-    title: 'Academic Compliance Auditor',
-    description:
-      'Evaluates margins, fonts, line spacing, heading levels, and mandatory sections (Introduction, Conclusion, References) with deterministic scoring.',
-    bullets: [
-      'Clear pass/fail and warning breakdown',
-      'Actionable remediation guidance',
-    ],
-  },
-];
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   onStartFormatting,
   onCreatePresentation,
   onOpenProfiles,
   onOpenDoctor,
+  onOpenConverter,
+  onOpenRubric,
+  onOpenProjects,
 }) => {
   return (
     <div className="space-y-20 pb-16">
@@ -186,25 +109,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <HeroShowcase
               onStartFormatting={() => onStartFormatting()}
               onCreatePresentation={() => onCreatePresentation()}
+              onOpenDoctor={onOpenDoctor}
             />
           </ScrollReveal>
         </div>
       </section>
 
       {/* ==================================================== */}
-      {/* THREE CORE ACADEMIC WORKFLOWS */}
+      {/* SIX CORE ACADEMIC WORKFLOWS */}
       {/* ==================================================== */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal delay={0}>
           <div className="text-center mb-8">
             <div className="tracking-widest text-xs font-bold text-academic-navy uppercase mb-1">
-              Core Academic Workflows
+              Unified Academic Intelligence
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Three Dedicated Workflows
+              Six Dedicated Workflows for University Students
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-xl mx-auto">
-              Select the exact task for your coursework. Every workflow executes genuine OpenXML processing with 100% private ephemeral retention.
+              Select the exact tool for your assignment, slides, file conversion, health diagnosis, or grading rubric.
             </p>
           </div>
         </ScrollReveal>
@@ -281,6 +205,78 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             </div>
           </ScrollReveal>
+
+          {/* Workflow 4 */}
+          <ScrollReveal delay={200}>
+            <div
+              onClick={() => onOpenConverter && onOpenConverter()}
+              className="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-violet-400/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group h-full"
+            >
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center border border-violet-100 group-hover:scale-105 transition-transform">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-base text-slate-900 group-hover:text-violet-700 transition-colors">
+                  4. File Conversion Center
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Convert between PDF, DOCX, TXT, RTF, Markdown, and ODT with deterministic formatting preservation and zero external AI telemetry.
+                </p>
+              </div>
+              <div className="pt-5 flex items-center gap-1.5 text-xs font-bold text-violet-700">
+                <span>Launch File Converter</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* Workflow 5 */}
+          <ScrollReveal delay={250}>
+            <div
+              onClick={() => onOpenRubric && onOpenRubric()}
+              className="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-amber-400/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group h-full"
+            >
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 group-hover:scale-105 transition-transform">
+                  <FileSpreadsheet className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-base text-slate-900 group-hover:text-amber-700 transition-colors">
+                  5. Marking Scheme Analyzer
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Align your document against university assessment rubrics, score criteria coverage, and surface missing mandatory requirements before submission.
+                </p>
+              </div>
+              <div className="pt-5 flex items-center gap-1.5 text-xs font-bold text-amber-700">
+                <span>Audit Marking Criteria</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </ScrollReveal>
+
+          {/* Workflow 6 */}
+          <ScrollReveal delay={300}>
+            <div
+              onClick={() => onOpenProjects && onOpenProjects()}
+              className="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-teal-400/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group h-full"
+            >
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-100 group-hover:scale-105 transition-transform">
+                  <Layers className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-base text-slate-900 group-hover:text-teal-700 transition-colors">
+                  6. Project Hub & Versions
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Upload once and use everywhere. Track document versions, compare health diagnostics across revisions, and generate slides from any saved state.
+                </p>
+              </div>
+              <div className="pt-5 flex items-center gap-1.5 text-xs font-bold text-teal-700">
+                <span>Open Project Workspace</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -290,77 +286,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <VisualShowcaseMarquee
         onStartFormatting={() => onStartFormatting()}
         onCreatePresentation={() => onCreatePresentation()}
+        onOpenConverter={onOpenConverter}
       />
-
-      {/* ==================================================== */}
-      {/* INSTITUTIONAL STANDARDS - CONTINUOUS INFINITE MARQUEE SLIDER */}
-      {/* ==================================================== */}
-      <section id="features" className="scroll-mt-24 w-full py-4 overflow-hidden">
-        <ScrollReveal delay={0}>
-          <div className="text-center max-w-2xl mx-auto mb-10 px-4 sm:px-6">
-            <div className="tracking-widest text-xs font-bold text-indigo-600 uppercase mb-1">
-              Institutional Standards
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Engineered Specifically for University Compliance
-            </h2>
-            <p className="text-sm text-slate-600 mt-2">
-              Every feature is designed to ensure strict compliance with institutional guidelines and faculty rubrics.
-            </p>
-          </div>
-        </ScrollReveal>
-
-        {/* Marquee Viewport with Left and Right Gradient Edge Fade Masks */}
-        <ScrollReveal delay={150}>
-          <div className="relative max-w-7xl mx-auto overflow-hidden py-4">
-            {/* Left subtle gradient fade mask */}
-            <div
-              className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-28 bg-gradient-to-r from-slate-50 to-transparent z-10"
-              aria-hidden="true"
-            />
-            {/* Right subtle gradient fade mask */}
-            <div
-              className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-28 bg-gradient-to-l from-slate-50 to-transparent z-10"
-              aria-hidden="true"
-            />
-
-            {/* Infinite Marquee Track: rendered twice [...cards, ...cards] */}
-            <div className="flex gap-6 w-max animate-marquee-rtl hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]">
-              {[...FEATURE_STANDARDS, ...FEATURE_STANDARDS].map((feature, idx) => {
-                const IconComponent = feature.icon;
-                return (
-                  <div
-                    key={`${feature.id}-${idx}`}
-                    className="w-[320px] sm:w-[370px] shrink-0 flex flex-col justify-between bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs hover:shadow-xl hover:-translate-y-1.5 hover:border-indigo-500/40 transition-all duration-300 select-none group"
-                  >
-                    <div>
-                      <div
-                        className={`w-10 h-10 rounded-xl ${feature.iconBg} flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110`}
-                      >
-                        <IconComponent className="w-5 h-5" />
-                      </div>
-                      <h3 className="text-base font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors duration-200">
-                        {feature.title}
-                      </h3>
-                      <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                        {feature.description}
-                      </p>
-                    </div>
-                    <ul className="text-xs text-slate-500 space-y-1.5 pt-3 border-t border-slate-100">
-                      {feature.bullets.map((bullet, bIdx) => (
-                        <li key={bIdx} className="flex items-center gap-1.5">
-                          <CheckCircle2 className={`w-3.5 h-3.5 ${feature.checkColor} shrink-0`} />
-                          <span>{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </ScrollReveal>
-      </section>
 
       {/* ==================================================== */}
       {/* DATA SOVEREIGNTY & PRIVACY BENTO STRIP */}

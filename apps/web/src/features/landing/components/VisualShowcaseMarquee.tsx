@@ -119,11 +119,13 @@ const VISUAL_SHOWCASE_ITEMS: VisualShowcaseItem[] = [
 interface VisualShowcaseMarqueeProps {
   onStartFormatting: () => void;
   onCreatePresentation: () => void;
+  onOpenConverter?: () => void;
 }
 
 export const VisualShowcaseMarquee: React.FC<VisualShowcaseMarqueeProps> = ({
   onStartFormatting,
   onCreatePresentation,
+  onOpenConverter: _onOpenConverter,
 }) => {
   const handleCardClick = (actionType: VisualShowcaseItem['actionType']) => {
     if (actionType === 'presentation') {

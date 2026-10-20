@@ -309,6 +309,9 @@ export const App: React.FC = () => {
               onCreatePresentation={handleCreatePresentation}
               onOpenProfiles={() => setIsProfilesOpen(true)}
               onOpenDoctor={() => setCurrentView('doctor')}
+              onOpenConverter={() => setCurrentView('converter')}
+              onOpenRubric={() => setCurrentView('rubric')}
+              onOpenProjects={() => setCurrentView('projects')}
             />
           )}
 

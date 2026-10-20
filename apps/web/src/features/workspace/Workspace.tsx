@@ -14,6 +14,7 @@ import {
   InspectionResult,
   ComplianceReport,
 } from '../../types';
+import { api } from '../../lib/api';
 import { ScrollReveal } from '../../components/ui/ScrollReveal';
 
 interface WorkspaceProps {
@@ -276,7 +277,19 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           {currentStep === 3 && (
             <CoverPageStep
               settings={settings}
-              hasTemplateFile={hasTemplateFile}
+              hasTemplateFile={hasTemplateFile || !!templateFile}
+              templateFile={templateFile}
+              onUploadTemplate={async (file) => {
+                if (jobId) {
+                  await api.uploadCoverTemplate(jobId, file);
+                }
+                setTemplateFile(file);
+                setHasTemplateFile(true);
+                onUpdateSettings({
+                  ...settings,
+                  cover_page: { ...settings.cover_page, mode: 'template', enabled: true },
+                });
+              }}
               onChange={(coverData) => onUpdateSettings({ ...settings, cover_page: coverData })}
               onNext={() => setCurrentStep(4)}
               onBack={() => setCurrentStep(2)}
