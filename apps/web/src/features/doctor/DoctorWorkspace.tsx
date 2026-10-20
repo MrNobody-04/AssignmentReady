@@ -13,7 +13,6 @@ import {
   AlertCircle,
   Sparkles,
   Presentation,
-  FileSpreadsheet,
 } from 'lucide-react';
 import { DoctorDiagnosisResponse, FormattingSettings, DocumentVersionInfo } from '../../types';
 import { api, ApiError } from '../../lib/api';
@@ -26,7 +25,6 @@ interface DoctorWorkspaceProps {
   activeVersionId?: number;
   settings?: FormattingSettings;
   onOpenPresentation?: (jobId?: string, versionId?: number) => void;
-  onOpenRubric?: (jobId?: string) => void;
 }
 
 export const DoctorWorkspace: React.FC<DoctorWorkspaceProps> = ({
@@ -36,7 +34,6 @@ export const DoctorWorkspace: React.FC<DoctorWorkspaceProps> = ({
   activeVersionId,
   settings,
   onOpenPresentation,
-  onOpenRubric,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFixing, setIsFixing] = useState(false);
@@ -381,16 +378,6 @@ export const DoctorWorkspace: React.FC<DoctorWorkspaceProps> = ({
                 >
                   <Presentation className="w-3.5 h-3.5 text-indigo-600" />
                   <span>Create Slides</span>
-                </button>
-              )}
-
-              {onOpenRubric && (
-                <button
-                  onClick={() => onOpenRubric(activeJobId || diagnosis.job_id)}
-                  className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer"
-                >
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Check Rubric</span>
                 </button>
               )}
 

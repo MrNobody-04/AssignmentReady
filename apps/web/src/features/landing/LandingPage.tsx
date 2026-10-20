@@ -10,8 +10,6 @@ import {
   Presentation,
   Stethoscope,
   FileSpreadsheet,
-  FileType,
-  FolderClock,
 } from 'lucide-react';
 import { HeroShowcase } from './components/HeroShowcase';
 import { VisualShowcaseMarquee } from './components/VisualShowcaseMarquee';
@@ -22,9 +20,6 @@ interface LandingPageProps {
   onCreatePresentation: (file?: File) => void;
   onOpenProfiles: () => void;
   onOpenDoctor?: () => void;
-  onOpenConverter?: () => void;
-  onOpenRubric?: () => void;
-  onOpenProjects?: () => void;
 }
 
 const FEATURE_STANDARDS = [
@@ -112,10 +107,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onStartFormatting,
   onCreatePresentation,
   onOpenProfiles,
-  onOpenConverter,
   onOpenDoctor,
-  onOpenRubric,
-  onOpenProjects,
 }) => {
   return (
     <div className="space-y-20 pb-16">
@@ -289,78 +281,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             </div>
           </ScrollReveal>
-
-          {/* Workflow 4 */}
-          <ScrollReveal delay={200}>
-            <div
-              onClick={() => onOpenConverter && onOpenConverter()}
-              className="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-teal-400/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group h-full"
-            >
-              <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-100 group-hover:scale-105 transition-transform">
-                  <FileType className="w-6 h-6" />
-                </div>
-                <h3 className="font-bold text-base text-slate-900 group-hover:text-teal-700 transition-colors">
-                  4. Convert Academic Files
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Universal converter between PDF, Word (.docx), Excel (.xlsx), CSV, plain text, and high-resolution images with real layout preservation.
-                </p>
-              </div>
-              <div className="pt-5 flex items-center gap-1.5 text-xs font-bold text-teal-700">
-                <span>Open File Converter</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-          </ScrollReveal>
-
-          {/* Workflow 5 */}
-          <ScrollReveal delay={250}>
-            <div
-              onClick={() => onOpenRubric && onOpenRubric()}
-              className="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-purple-400/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group h-full"
-            >
-              <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100 group-hover:scale-105 transition-transform">
-                  <FileSpreadsheet className="w-6 h-6" />
-                </div>
-                <h3 className="font-bold text-base text-slate-900 group-hover:text-purple-700 transition-colors">
-                  5. Analyze Marking Scheme
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Upload official assessment rubrics (PDF, Word, or Excel) to extract criteria weighting and map academic evidence directly from your assignment draft.
-                </p>
-              </div>
-              <div className="pt-5 flex items-center gap-1.5 text-xs font-bold text-purple-700">
-                <span>Evaluate Against Rubric</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-          </ScrollReveal>
-
-          {/* Workflow 6 */}
-          <ScrollReveal delay={300}>
-            <div
-              onClick={() => onOpenProjects && onOpenProjects()}
-              className="p-6 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-400/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group h-full"
-            >
-              <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200 group-hover:scale-105 transition-transform">
-                  <FolderClock className="w-6 h-6" />
-                </div>
-                <h3 className="font-bold text-base text-slate-900 group-hover:text-slate-800 transition-colors">
-                  6. My Projects & Recent Files
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Track your recently formatted documents, presentation decks, converted downloads, and diagnostic reports securely in private local storage.
-                </p>
-              </div>
-              <div className="pt-5 flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                <span>View My Workspace</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-          </ScrollReveal>
         </div>
       </section>
 
@@ -370,7 +290,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <VisualShowcaseMarquee
         onStartFormatting={() => onStartFormatting()}
         onCreatePresentation={() => onCreatePresentation()}
-        onOpenConverter={onOpenConverter}
       />
 
       {/* ==================================================== */}

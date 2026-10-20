@@ -22,9 +22,9 @@ export interface VisualShowcaseItem {
   outputFormat: string;
   tags: string[];
   actionLabel: string;
-  actionType: 'workspace' | 'presentation' | 'converter';
+  actionType: 'workspace' | 'presentation';
   mockup: {
-    type: 'document' | 'slide' | 'cover' | 'rubric' | 'audit' | 'converter';
+    type: 'document' | 'slide' | 'cover' | 'rubric' | 'audit';
   };
 }
 
@@ -119,24 +119,15 @@ const VISUAL_SHOWCASE_ITEMS: VisualShowcaseItem[] = [
 interface VisualShowcaseMarqueeProps {
   onStartFormatting: () => void;
   onCreatePresentation: () => void;
-  onOpenConverter?: () => void;
 }
 
 export const VisualShowcaseMarquee: React.FC<VisualShowcaseMarqueeProps> = ({
   onStartFormatting,
   onCreatePresentation,
-  onOpenConverter,
 }) => {
   const handleCardClick = (actionType: VisualShowcaseItem['actionType']) => {
     if (actionType === 'presentation') {
       onCreatePresentation();
-    } else if (actionType === 'converter') {
-      if (onOpenConverter) {
-        onOpenConverter();
-      } else {
-        const el = document.getElementById('converter');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }
     } else {
       onStartFormatting();
     }
