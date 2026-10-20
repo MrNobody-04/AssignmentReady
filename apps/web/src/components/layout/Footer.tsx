@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Sliders,
   Presentation,
-  FileType,
   BookOpen,
 } from 'lucide-react';
 import { AppView } from '../../types';
@@ -117,33 +116,6 @@ export const Footer: React.FC<FooterProps> = ({
                 >
                   <ChevronRight className="w-3.5 h-3.5 text-indigo-400" />
                   <span>Assignment Doctor</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate?.('converter')}
-                  className="flex items-center gap-2 hover:text-white hover:translate-x-1 transition-all duration-200 cursor-pointer"
-                >
-                  <FileType className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>File Converter</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate?.('rubric')}
-                  className="flex items-center gap-2 hover:text-white hover:translate-x-1 transition-all duration-200 cursor-pointer"
-                >
-                  <ChevronRight className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Marking Scheme Analyzer</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate?.('projects')}
-                  className="flex items-center gap-2 hover:text-white hover:translate-x-1 transition-all duration-200 cursor-pointer"
-                >
-                  <ChevronRight className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>My Projects & Recent Files</span>
                 </button>
               </li>
               <li>

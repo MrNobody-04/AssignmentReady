@@ -58,10 +58,21 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     }
   }, [initialFile]);
 
-  // Auxiliary files
-  const [hasTemplateFile, setHasTemplateFile] = useState(false);
-  const [, setHasGuidelinesFile] = useState(false);
-  const [, setHasRubricFile] = useState(false);
+  // Auxiliary files lifted state to preserve uploads across step navigation
+  const [templateFile, setTemplateFile] = useState<File | null>(null);
+  const [guidelinesFile, setGuidelinesFile] = useState<File | null>(null);
+  const [rubricFile, setRubricFile] = useState<File | null>(null);
+  const [guidelineEvidence, setGuidelineEvidence] = useState<string[]>([]);
+  const [rubricCriteriaCount, setRubricCriteriaCount] = useState<number>(
+    settings.marking_scheme?.criteria?.length || 0
+  );
+  const [hasTemplateFile, setHasTemplateFile] = useState(
+    settings.cover_page?.mode === 'template'
+  );
+  const [hasGuidelinesFile, setHasGuidelinesFile] = useState(false);
+  const [hasRubricFile, setHasRubricFile] = useState(
+    (settings.marking_scheme?.criteria?.length || 0) > 0
+  );
 
   // Results
   const [compliance, setCompliance] = useState<ComplianceReport | null>(null);
@@ -98,9 +109,49 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     setCurrentStep(7); // Move to Download
   };
 
+  const handleRemoveTemplate = () => {
+    setTemplateFile(null);
+    setHasTemplateFile(false);
+    onUpdateSettings({
+      ...settings,
+      cover_page: {
+        ...settings.cover_page,
+        mode: 'builtin',
+      },
+    });
+  };
+
+  const handleRemoveGuidelines = () => {
+    setGuidelinesFile(null);
+    setHasGuidelinesFile(false);
+    setGuidelineEvidence([]);
+  };
+
+  const handleRemoveRubric = () => {
+    setRubricFile(null);
+    setHasRubricFile(false);
+    setRubricCriteriaCount(0);
+    onUpdateSettings({
+      ...settings,
+      marking_scheme: {
+        ...settings.marking_scheme,
+        enabled: false,
+        criteria: [],
+      },
+    });
+  };
+
   const handleReset = () => {
     setJobId(null);
     setAssignmentFile(null);
+    setTemplateFile(null);
+    setGuidelinesFile(null);
+    setRubricFile(null);
+    setGuidelineEvidence([]);
+    setRubricCriteriaCount(0);
+    setHasTemplateFile(false);
+    setHasGuidelinesFile(false);
+    setHasRubricFile(false);
     setInspection(null);
     setCompliance(null);
     setCurrentStep(1);
@@ -158,14 +209,29 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               jobId={jobId}
               assignmentFile={assignmentFile}
               inspection={inspection}
+              templateFile={templateFile}
+              guidelinesFile={guidelinesFile}
+              rubricFile={rubricFile}
+              guidelineEvidence={guidelineEvidence}
+              rubricCriteriaCount={rubricCriteriaCount || settings.marking_scheme?.criteria?.length || 0}
+              hasTemplateFile={hasTemplateFile || !!templateFile}
+              hasGuidelinesFile={hasGuidelinesFile || !!guidelinesFile}
+              hasRubricFile={hasRubricFile || !!rubricFile || (settings.marking_scheme?.criteria?.length || 0) > 0}
               onAssignmentUploaded={handleAssignmentUploaded}
-              onCoverTemplateUploaded={() => {
+              onCoverTemplateUploaded={(file) => {
+                setTemplateFile(file);
                 setHasTemplateFile(true);
-                onUpdateSettings({ ...settings, cover_page: { ...settings.cover_page, mode: 'template', enabled: true } });
+                onUpdateSettings({
+                  ...settings,
+                  cover_page: { ...settings.cover_page, mode: 'template', enabled: true },
+                });
               }}
-              onGuidelinesUploaded={(_, analysis) => {
+              onGuidelinesUploaded={(file, analysis) => {
+                setGuidelinesFile(file);
                 setHasGuidelinesFile(true);
-                if (!analysis.has_suggestions) return;
+                const ev = analysis?.evidence || [];
+                setGuidelineEvidence(ev);
+                if (!analysis?.has_suggestions) return;
                 const suggested = analysis.suggestions;
                 onUpdateSettings({
                   ...settings,
@@ -175,8 +241,10 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                   ...(suggested.required_sections ? { required_sections: suggested.required_sections } : {}),
                 });
               }}
-              onMarkingSchemeUploaded={(_, criteria) => {
+              onMarkingSchemeUploaded={(file, criteria) => {
+                setRubricFile(file);
                 setHasRubricFile(true);
+                setRubricCriteriaCount(criteria.length);
                 onUpdateSettings({
                   ...settings,
                   marking_scheme: {
@@ -186,6 +254,9 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                   },
                 });
               }}
+              onRemoveTemplate={handleRemoveTemplate}
+              onRemoveGuidelines={handleRemoveGuidelines}
+              onRemoveRubric={handleRemoveRubric}
               onNext={() => setCurrentStep(2)}
             />
           )}

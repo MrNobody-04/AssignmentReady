@@ -7,8 +7,10 @@ import {
   ArrowRight,
   ArrowLeft,
   Check,
+  Sparkles,
 } from 'lucide-react';
 import { FormattingSettings, TextAlignment } from '../../../types';
+import { SearchableFontSelect } from '../../../components/ui/SearchableFontSelect';
 
 interface RequirementsStepProps {
   settings: FormattingSettings;
@@ -16,16 +18,6 @@ interface RequirementsStepProps {
   onNext: () => void;
   onBack: () => void;
 }
-
-const AVAILABLE_FONTS = [
-  'Times New Roman',
-  'Arial',
-  'Calibri',
-  'Georgia',
-  'Garamond',
-  'Verdana',
-  'Trebuchet MS',
-];
 
 export const RequirementsStep: React.FC<RequirementsStepProps> = ({
   settings,
@@ -67,6 +59,16 @@ export const RequirementsStep: React.FC<RequirementsStepProps> = ({
     onChange({
       ...settings,
       heading3: { ...settings.heading3, [key]: val },
+    });
+  };
+
+  const handleSyncAllHeadingsToBody = () => {
+    const bodyFont = settings.body.font_family;
+    onChange({
+      ...settings,
+      heading1: { ...settings.heading1, font_family: bodyFont },
+      heading2: { ...settings.heading2, font_family: bodyFont },
+      heading3: { ...settings.heading3, font_family: bodyFont },
     });
   };
 
@@ -271,18 +273,12 @@ export const RequirementsStep: React.FC<RequirementsStepProps> = ({
         <div className="space-y-6 bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-1">Font Family</label>
-              <select
+              <SearchableFontSelect
+                label="Font Family"
                 value={settings.body.font_family}
-                onChange={(e) => updateBody('font_family', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-academic-blue"
-              >
-                {AVAILABLE_FONTS.map((font) => (
-                  <option key={font} value={font}>
-                    {font}
-                  </option>
-                ))}
-              </select>
+                onChange={(font) => updateBody('font_family', font)}
+                helpText="Search from 115+ academic, modern serif, sans-serif, and monospace fonts."
+              />
             </div>
 
             <div>
@@ -369,69 +365,78 @@ export const RequirementsStep: React.FC<RequirementsStepProps> = ({
       {/* Tab 3: Headings */}
       {activeTab === 'headings' && (
         <div className="space-y-6">
+          {/* Quick sync helper banner */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-indigo-50/70 border border-indigo-100 rounded-xl p-4">
+            <div>
+              <h4 className="text-sm font-semibold text-indigo-950">Harmonized Heading Typography</h4>
+              <p className="text-xs text-indigo-700">Quickly apply your body font to all headings or configure customized typography below.</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleSyncAllHeadingsToBody}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-2xs transition-colors shrink-0 cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-indigo-200" />
+              <span>Use &quot;{settings.body.font_family}&quot; for All Headings</span>
+            </button>
+          </div>
+
           {/* Heading 1 */}
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
             <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center justify-between">
               <span>Heading 1 (Major Sections)</span>
               <span className="text-xs text-slate-500 font-normal">e.g. 1. Introduction, 4. Discussion</span>
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-              <div>
-                <label className="block font-medium text-slate-600 mb-1">Font Family</label>
-                <select
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start text-xs">
+              <div className="sm:col-span-6">
+                <SearchableFontSelect
+                  label="Font Family"
                   value={settings.heading1.font_family}
-                  onChange={(e) => updateH1('font_family', e.target.value)}
-                  className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
-                >
-                  {AVAILABLE_FONTS.map((f) => (
-                    <option key={f} value={f}>
-                      {f}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(font) => updateH1('font_family', font)}
+                />
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <label className="block font-medium text-slate-600 mb-1">Size (pt)</label>
                 <input
                   type="number"
                   value={settings.heading1.font_size_pt}
                   onChange={(e) => updateH1('font_size_pt', parseFloat(e.target.value) || 16)}
-                  className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
+                  className="w-full px-2.5 py-2 text-xs border border-slate-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <label className="block font-medium text-slate-600 mb-1">Emphasis</label>
-                <div className="flex gap-2">
-                  <label className="flex items-center gap-1">
+                <div className="flex gap-2 pt-1.5">
+                  <label className="flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={settings.heading1.bold}
                       onChange={(e) => updateH1('bold', e.target.checked)}
                       className="rounded text-academic-blue"
                     />
-                    <span>Bold</span>
+                    <span className="font-semibold">Bold</span>
                   </label>
-                  <label className="flex items-center gap-1">
+                  <label className="flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={settings.heading1.italic}
                       onChange={(e) => updateH1('italic', e.target.checked)}
                       className="rounded text-academic-blue"
                     />
-                    <span>Italic</span>
+                    <span className="italic">Italic</span>
                   </label>
                 </div>
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <label className="block font-medium text-slate-600 mb-1">Color (Hex)</label>
                 <input
                   type="text"
                   value={settings.heading1.color_hex}
                   onChange={(e) => updateH1('color_hex', e.target.value)}
-                  className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
+                  className="w-full px-2.5 py-2 text-xs border border-slate-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
             </div>
@@ -443,63 +448,56 @@ export const RequirementsStep: React.FC<RequirementsStepProps> = ({
               <span>Heading 2 (Subsections)</span>
               <span className="text-xs text-slate-500 font-normal">e.g. 2.1 Theoretical Framework</span>
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-              <div>
-                <label className="block font-medium text-slate-600 mb-1">Font Family</label>
-                <select
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start text-xs">
+              <div className="sm:col-span-6">
+                <SearchableFontSelect
+                  label="Font Family"
                   value={settings.heading2.font_family}
-                  onChange={(e) => updateH2('font_family', e.target.value)}
-                  className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
-                >
-                  {AVAILABLE_FONTS.map((f) => (
-                    <option key={f} value={f}>
-                      {f}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(font) => updateH2('font_family', font)}
+                />
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <label className="block font-medium text-slate-600 mb-1">Size (pt)</label>
                 <input
                   type="number"
                   value={settings.heading2.font_size_pt}
                   onChange={(e) => updateH2('font_size_pt', parseFloat(e.target.value) || 14)}
-                  className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
+                  className="w-full px-2.5 py-2 text-xs border border-slate-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <label className="block font-medium text-slate-600 mb-1">Emphasis</label>
-                <div className="flex gap-2">
-                  <label className="flex items-center gap-1">
+                <div className="flex gap-2 pt-1.5">
+                  <label className="flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={settings.heading2.bold}
                       onChange={(e) => updateH2('bold', e.target.checked)}
                       className="rounded text-academic-blue"
                     />
-                    <span>Bold</span>
+                    <span className="font-semibold">Bold</span>
                   </label>
-                  <label className="flex items-center gap-1">
+                  <label className="flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={settings.heading2.italic}
                       onChange={(e) => updateH2('italic', e.target.checked)}
                       className="rounded text-academic-blue"
                     />
-                    <span>Italic</span>
+                    <span className="italic">Italic</span>
                   </label>
                 </div>
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <label className="block font-medium text-slate-600 mb-1">Color (Hex)</label>
                 <input
                   type="text"
                   value={settings.heading2.color_hex}
                   onChange={(e) => updateH2('color_hex', e.target.value)}
-                  className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
+                  className="w-full px-2.5 py-2 text-xs border border-slate-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
             </div>
@@ -511,63 +509,56 @@ export const RequirementsStep: React.FC<RequirementsStepProps> = ({
               <span>Heading 3 (Sub-subsections)</span>
               <span className="text-xs text-slate-500 font-normal">e.g. 2.1.1 Dataset Preprocessing</span>
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-              <div>
-                <label className="block font-medium text-slate-600 mb-1">Font Family</label>
-                <select
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start text-xs">
+              <div className="sm:col-span-6">
+                <SearchableFontSelect
+                  label="Font Family"
                   value={settings.heading3.font_family}
-                  onChange={(e) => updateH3('font_family', e.target.value)}
-                  className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
-                >
-                  {AVAILABLE_FONTS.map((f) => (
-                    <option key={f} value={f}>
-                      {f}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(font) => updateH3('font_family', font)}
+                />
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <label className="block font-medium text-slate-600 mb-1">Size (pt)</label>
                 <input
                   type="number"
                   value={settings.heading3.font_size_pt}
                   onChange={(e) => updateH3('font_size_pt', parseFloat(e.target.value) || 12)}
-                  className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
+                  className="w-full px-2.5 py-2 text-xs border border-slate-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <label className="block font-medium text-slate-600 mb-1">Emphasis</label>
-                <div className="flex gap-2">
-                  <label className="flex items-center gap-1">
+                <div className="flex gap-2 pt-1.5">
+                  <label className="flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={settings.heading3.bold}
                       onChange={(e) => updateH3('bold', e.target.checked)}
                       className="rounded text-academic-blue"
                     />
-                    <span>Bold</span>
+                    <span className="font-semibold">Bold</span>
                   </label>
-                  <label className="flex items-center gap-1">
+                  <label className="flex items-center gap-1 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={settings.heading3.italic}
                       onChange={(e) => updateH3('italic', e.target.checked)}
                       className="rounded text-academic-blue"
                     />
-                    <span>Italic</span>
+                    <span className="italic">Italic</span>
                   </label>
                 </div>
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
                 <label className="block font-medium text-slate-600 mb-1">Color (Hex)</label>
                 <input
                   type="text"
                   value={settings.heading3.color_hex}
                   onChange={(e) => updateH3('color_hex', e.target.value)}
-                  className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-md"
+                  className="w-full px-2.5 py-2 text-xs border border-slate-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
             </div>

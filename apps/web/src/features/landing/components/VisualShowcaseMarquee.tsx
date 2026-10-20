@@ -4,8 +4,6 @@ import {
   Presentation,
   ArrowRight,
   CheckCircle2,
-  FileType,
-  Sparkles,
   Layers,
   GraduationCap,
   ClipboardCheck,
@@ -26,7 +24,7 @@ export interface VisualShowcaseItem {
   actionLabel: string;
   actionType: 'workspace' | 'presentation' | 'converter';
   mockup: {
-    type: 'document' | 'slide' | 'converter' | 'cover' | 'rubric' | 'audit';
+    type: 'document' | 'slide' | 'cover' | 'rubric' | 'audit' | 'converter';
   };
 }
 
@@ -64,23 +62,6 @@ const VISUAL_SHOWCASE_ITEMS: VisualShowcaseItem[] = [
     actionLabel: 'Create Slides',
     actionType: 'presentation',
     mockup: { type: 'slide' },
-  },
-  {
-    id: 'universal-converter',
-    category: 'Document Converter',
-    title: 'Cross-Format Document Transformation',
-    badge: 'PDF ➔ DOCX ➔ TXT ➔ PPTX',
-    description:
-      'Extracts editable text, formatting hierarchies, and tables from locked PDFs, scanned handouts, spreadsheets, and markdown notes in under 3 seconds.',
-    imageUrl:
-      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
-    imageAlt: 'Digital document conversion workflow',
-    icon: FileType,
-    outputFormat: 'Fast OCR',
-    tags: ['Zero Data Loss', 'Instant Export'],
-    actionLabel: 'Convert File',
-    actionType: 'converter',
-    mockup: { type: 'converter' },
   },
   {
     id: 'cover-page',
@@ -210,29 +191,6 @@ export const VisualShowcaseMarquee: React.FC<VisualShowcaseMarqueeProps> = ({
                   100% compliance
                 </div>
               </div>
-            </div>
-          </div>
-        );
-
-      case 'converter':
-        return (
-          <div className="bg-slate-50 rounded-lg border border-slate-200/90 p-2.5 sm:p-3 shadow-2xs text-[10px] space-y-1.5">
-            <div className="flex items-center justify-between text-slate-500 text-[8.5px] font-mono">
-              <span>DOCUMENT PIPELINE</span>
-              <span className="text-teal-700 font-bold text-[8.5px]">0.3s Fast</span>
-            </div>
-            <div className="flex items-center justify-between gap-1.5 py-0.5">
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-white border border-rose-200 text-rose-700 rounded text-[8.5px] font-bold">
-                <span>PDF Draft</span>
-              </div>
-              <ArrowRight className="w-3 h-3 text-slate-400 shrink-0" />
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-teal-50 border border-teal-200 text-teal-800 rounded text-[8.5px] font-bold">
-                <Sparkles className="w-2.5 h-2.5 text-teal-600" />
-                <span>Word .docx</span>
-              </div>
-            </div>
-            <div className="text-[8px] text-slate-500 text-center font-medium truncate">
-              Extracted 14 headings, 3 tables & footnotes
             </div>
           </div>
         );

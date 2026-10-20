@@ -2,14 +2,11 @@ import React, { useState } from 'react';
 import {
   BookOpen,
   Presentation,
-  FileType,
   Sliders,
   Menu,
   X,
   ChevronRight,
   Stethoscope,
-  FileSpreadsheet,
-  FolderClock,
 } from 'lucide-react';
 import { AppView } from '../../types';
 
@@ -93,33 +90,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenP
           >
             <Stethoscope className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
             <span>Assignment Doctor</span>
-          </button>
-          <button
-            onClick={() => handleNavClick('converter')}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all duration-200 whitespace-nowrap hover:text-slate-900 hover:bg-slate-100 cursor-pointer ${
-              currentView === 'converter' ? 'text-teal-700 font-bold bg-teal-50/70 shadow-2xs' : ''
-            }`}
-          >
-            <FileType className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-            <span>File Converter</span>
-          </button>
-          <button
-            onClick={() => handleNavClick('rubric')}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all duration-200 whitespace-nowrap hover:text-slate-900 hover:bg-slate-100 cursor-pointer ${
-              currentView === 'rubric' ? 'text-purple-700 font-bold bg-purple-50/80 shadow-2xs' : ''
-            }`}
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-            <span>Marking Scheme</span>
-          </button>
-          <button
-            onClick={() => handleNavClick('projects')}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all duration-200 whitespace-nowrap hover:text-slate-900 hover:bg-slate-100 cursor-pointer ${
-              currentView === 'projects' ? 'text-academic-navy font-bold bg-slate-100 shadow-2xs' : ''
-            }`}
-          >
-            <FolderClock className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-            <span>My Projects</span>
           </button>
         </nav>
 
@@ -213,51 +183,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenP
               <div className="flex items-center gap-2.5">
                 <Stethoscope className="w-4 h-4 text-emerald-600" />
                 <span>Check My Assignment (Assignment Doctor)</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </button>
-
-            <button
-              onClick={() => handleNavClick('converter')}
-              className={`flex items-center justify-between p-2.5 rounded-xl text-left transition-colors cursor-pointer ${
-                currentView === 'converter'
-                  ? 'bg-teal-50/80 text-teal-800 font-bold border border-teal-100'
-                  : 'text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <FileType className="w-4 h-4 text-teal-600" />
-                <span>Convert My Files</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </button>
-
-            <button
-              onClick={() => handleNavClick('rubric')}
-              className={`flex items-center justify-between p-2.5 rounded-xl text-left transition-colors cursor-pointer ${
-                currentView === 'rubric'
-                  ? 'bg-purple-50/80 text-purple-800 font-bold border border-purple-100'
-                  : 'text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <FileSpreadsheet className="w-4 h-4 text-purple-600" />
-                <span>Analyze My Marking Scheme</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </button>
-
-            <button
-              onClick={() => handleNavClick('projects')}
-              className={`flex items-center justify-between p-2.5 rounded-xl text-left transition-colors cursor-pointer ${
-                currentView === 'projects'
-                  ? 'bg-slate-100 text-slate-900 font-bold border border-slate-200'
-                  : 'text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <FolderClock className="w-4 h-4 text-slate-600" />
-                <span>My Projects & Recent Files</span>
               </div>
               <ChevronRight className="w-4 h-4 text-slate-400" />
             </button>

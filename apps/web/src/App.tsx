@@ -7,27 +7,20 @@ import {
   CheckCircle2,
   Sliders,
   Stethoscope,
-  FileSpreadsheet,
   Presentation,
   Check,
-  Layers,
 } from 'lucide-react';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { LandingPage } from './features/landing/LandingPage';
 import { FormattingSettings, CollegeProfile, AppView, DocumentVersionInfo } from './types';
 import { DEFAULT_FORMATTING_SETTINGS } from './lib/profiles';
-import { ScrollReveal } from './components/ui/ScrollReveal';
 import { api } from './lib/api';
-
-import { UniversalUploadCenter } from './features/converters/UniversalUploadCenter';
 
 // Dynamic code-split chunks for high-performance LCP and bundle budgets
 const Workspace = lazy(() => import('./features/workspace/Workspace').then((m) => ({ default: m.Workspace })));
 const PresentationWorkspace = lazy(() => import('./features/presentation/PresentationWorkspace').then((m) => ({ default: m.PresentationWorkspace })));
 const DoctorWorkspace = lazy(() => import('./features/doctor/DoctorWorkspace').then((m) => ({ default: m.DoctorWorkspace })));
-const RubricWorkspace = lazy(() => import('./features/rubric/RubricWorkspace').then((m) => ({ default: m.RubricWorkspace })));
-const ProjectsWorkspace = lazy(() => import('./features/projects/ProjectsWorkspace').then((m) => ({ default: m.ProjectsWorkspace })));
 const ProfileManagerModal = lazy(() => import('./features/profiles/ProfileManagerModal').then((m) => ({ default: m.ProfileManagerModal })));
 const LegalModal = lazy(() => import('./features/legal/LegalModal').then((m) => ({ default: m.LegalModal })));
 
@@ -133,26 +126,20 @@ export const App: React.FC = () => {
   const getActiveStageIndex = () => {
     switch (currentView) {
       case 'workspace':
-        return activeVersionId && activeVersionId > 1 ? 6 : 1; // 1 = Format, 6 = Export
-      case 'doctor':
-        return 2; // Check / Fix
-      case 'rubric':
-        return 4; // Review Compliance
+        return 0;
       case 'presentation':
-        return 5; // Create PowerPoint
+        return 1;
+      case 'doctor':
+        return 2;
       default:
         return 0;
     }
   };
 
   const workflowStages = [
-    { name: 'Upload', targetView: 'workspace' as AppView, icon: Sliders },
-    { name: 'Format', targetView: 'workspace' as AppView, icon: Sliders },
-    { name: 'Check', targetView: 'doctor' as AppView, icon: Stethoscope },
-    { name: 'Fix', targetView: 'doctor' as AppView, icon: Stethoscope },
-    { name: 'Review Compliance', targetView: 'rubric' as AppView, icon: FileSpreadsheet },
-    { name: 'Create PowerPoint', targetView: 'presentation' as AppView, icon: Presentation },
-    { name: 'Export', targetView: 'workspace' as AppView, icon: Layers },
+    { name: 'Format Assignment', targetView: 'workspace' as AppView, icon: Sliders },
+    { name: 'PowerPoint Slides', targetView: 'presentation' as AppView, icon: Presentation },
+    { name: 'Assignment Doctor', targetView: 'doctor' as AppView, icon: Stethoscope },
   ];
 
   return (
@@ -321,10 +308,7 @@ export const App: React.FC = () => {
               onStartFormatting={handleStartFormatting}
               onCreatePresentation={handleCreatePresentation}
               onOpenProfiles={() => setIsProfilesOpen(true)}
-              onOpenConverter={() => setCurrentView('converter')}
               onOpenDoctor={() => setCurrentView('doctor')}
-              onOpenRubric={() => setCurrentView('rubric')}
-              onOpenProjects={() => setCurrentView('projects')}
             />
           )}
 
@@ -347,10 +331,6 @@ export const App: React.FC = () => {
                 if (vId) setActiveVersionId(vId);
                 setCurrentView('presentation');
               }}
-              onOpenRubric={(id) => {
-                setActiveJobId(id);
-                setCurrentView('rubric');
-              }}
             />
           )}
 
@@ -366,20 +346,7 @@ export const App: React.FC = () => {
                 if (vId) setActiveVersionId(vId);
                 setCurrentView('doctor');
               }}
-              onOpenRubric={(id) => {
-                setActiveJobId(id);
-                setCurrentView('rubric');
-              }}
             />
-          )}
-
-          {currentView === 'converter' && (
-            <ScrollReveal delay={0} className="py-12 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-              <UniversalUploadCenter
-                onStartAssignmentFormatting={handleStartFormatting}
-                onOpenPresentationWorkspace={handleCreatePresentation}
-              />
-            </ScrollReveal>
           )}
 
           {currentView === 'doctor' && (
@@ -393,37 +360,6 @@ export const App: React.FC = () => {
                 if (id) setActiveJobId(id);
                 if (vId) setActiveVersionId(vId);
                 setCurrentView('presentation');
-              }}
-              onOpenRubric={(id) => {
-                if (id) setActiveJobId(id);
-                setCurrentView('rubric');
-              }}
-            />
-          )}
-
-          {currentView === 'rubric' && (
-            <RubricWorkspace
-              onBackToLanding={() => setCurrentView('landing')}
-              onOpenPresentation={handleCreatePresentation}
-              onOpenWorkspace={handleStartFormatting}
-              activeJobId={activeJobId}
-              activeVersionId={activeVersionId}
-              onCheckWithDoctor={(id, vId) => {
-                setActiveJobId(id);
-                if (vId) setActiveVersionId(vId);
-                setCurrentView('doctor');
-              }}
-            />
-          )}
-
-          {currentView === 'projects' && (
-            <ProjectsWorkspace
-              onBackToLanding={() => setCurrentView('landing')}
-              onNavigate={(view) => setCurrentView(view)}
-              onOpenProject={(id) => {
-                setActiveJobId(id);
-                refreshVersions(id);
-                setCurrentView('workspace');
               }}
             />
           )}

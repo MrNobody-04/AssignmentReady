@@ -1,6 +1,5 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
-  UploadCloud,
   FileText,
   FileCheck,
   AlertCircle,
@@ -18,10 +17,21 @@ interface UploadStepProps {
   jobId: string | null;
   assignmentFile: File | null;
   inspection: InspectionResult | null;
+  templateFile?: File | null;
+  guidelinesFile?: File | null;
+  rubricFile?: File | null;
+  guidelineEvidence?: string[];
+  rubricCriteriaCount?: number;
+  hasTemplateFile?: boolean;
+  hasGuidelinesFile?: boolean;
+  hasRubricFile?: boolean;
   onAssignmentUploaded: (jobId: string, file: File, inspection: InspectionResult) => void;
   onCoverTemplateUploaded: (file: File) => void;
   onGuidelinesUploaded: (file: File, analysis: GuidelineAnalysis) => void;
   onMarkingSchemeUploaded: (file: File, criteria: MarkingCriterion[]) => void;
+  onRemoveTemplate?: () => void;
+  onRemoveGuidelines?: () => void;
+  onRemoveRubric?: () => void;
   onNext: () => void;
 }
 
@@ -29,27 +39,54 @@ export const UploadStep: React.FC<UploadStepProps> = ({
   jobId,
   assignmentFile,
   inspection,
+  templateFile: propTemplateFile,
+  guidelinesFile: propGuidelinesFile,
+  rubricFile: propRubricFile,
+  guidelineEvidence: propGuidelineEvidence = [],
+  rubricCriteriaCount = 0,
+  hasTemplateFile = false,
+  hasGuidelinesFile = false,
+  hasRubricFile = false,
   onAssignmentUploaded,
   onCoverTemplateUploaded,
   onGuidelinesUploaded,
   onMarkingSchemeUploaded,
+  onRemoveTemplate,
+  onRemoveGuidelines,
+  onRemoveRubric,
   onNext,
 }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // File state for auxiliary files
-  const [templateFile, setTemplateFile] = useState<File | null>(null);
-  const [guidelinesFile, setGuidelinesFile] = useState<File | null>(null);
-  const [rubricFile, setRubricFile] = useState<File | null>(null);
-  const [guidelineEvidence, setGuidelineEvidence] = useState<string[]>([]);
+  // File state synchronized with lifted props so navigation never wipes files
+  const [templateFile, setTemplateFile] = useState<File | null>(propTemplateFile || null);
+  const [guidelinesFile, setGuidelinesFile] = useState<File | null>(propGuidelinesFile || null);
+  const [rubricFile, setRubricFile] = useState<File | null>(propRubricFile || null);
+  const [guidelineEvidence, setGuidelineEvidence] = useState<string[]>(propGuidelineEvidence || []);
+
+  useEffect(() => {
+    if (propTemplateFile !== undefined) setTemplateFile(propTemplateFile);
+  }, [propTemplateFile]);
+
+  useEffect(() => {
+    if (propGuidelinesFile !== undefined) setGuidelinesFile(propGuidelinesFile);
+  }, [propGuidelinesFile]);
+
+  useEffect(() => {
+    if (propRubricFile !== undefined) setRubricFile(propRubricFile);
+  }, [propRubricFile]);
+
+  useEffect(() => {
+    if (propGuidelineEvidence !== undefined) setGuidelineEvidence(propGuidelineEvidence);
+  }, [propGuidelineEvidence]);
 
   const assignmentInputRef = useRef<HTMLInputElement>(null);
   const templateInputRef = useRef<HTMLInputElement>(null);
   const guidelinesInputRef = useRef<HTMLInputElement>(null);
   const rubricInputRef = useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (assignmentFile && !jobId && !isUploading) {
       processAssignmentFile(assignmentFile);
     }
@@ -121,7 +158,8 @@ export const UploadStep: React.FC<UploadStepProps> = ({
     try {
       const res = await api.uploadGuidelines(jobId, file);
       setGuidelinesFile(file);
-      setGuidelineEvidence(res.guideline_analysis.evidence);
+      const ev = res.guideline_analysis?.evidence || [];
+      setGuidelineEvidence(ev);
       onGuidelinesUploaded(file, res.guideline_analysis);
     } catch (err: unknown) {
       const msg = err instanceof ApiError ? err.message : 'Failed to attach guidelines';
@@ -135,11 +173,27 @@ export const UploadStep: React.FC<UploadStepProps> = ({
     try {
       const res = await api.uploadMarkingScheme(jobId, file);
       setRubricFile(file);
-      onMarkingSchemeUploaded(file, res.criteria);
+      onMarkingSchemeUploaded(file, res.criteria || []);
     } catch (err: unknown) {
       const msg = err instanceof ApiError ? err.message : 'Failed to attach marking scheme';
       setErrorMessage(msg);
     }
+  };
+
+  const handleRemoveTemplateClick = () => {
+    setTemplateFile(null);
+    onRemoveTemplate?.();
+  };
+
+  const handleRemoveGuidelinesClick = () => {
+    setGuidelinesFile(null);
+    setGuidelineEvidence([]);
+    onRemoveGuidelines?.();
+  };
+
+  const handleRemoveRubricClick = () => {
+    setRubricFile(null);
+    onRemoveRubric?.();
   };
 
   return (
@@ -161,7 +215,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
           <div className="flex-1 font-medium">{errorMessage}</div>
           <button
             onClick={() => setErrorMessage(null)}
-            className="text-rose-500 hover:text-rose-700"
+            className="text-rose-500 hover:text-rose-700 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -199,34 +253,36 @@ export const UploadStep: React.FC<UploadStepProps> = ({
                   Inspecting Word document structure...
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  Parsing OpenXML headings, styles, and embedded tables
+                  Verifying OpenXML tags, heading hierarchy, margins, and page layouts
                 </p>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-4">
-                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 mb-3 shadow-2xs">
-                  <UploadCloud className="w-5 h-5" />
+              <div className="flex flex-col items-center justify-center py-2 sm:py-4">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 mb-3">
+                  <FileText className="w-6 h-6 text-academic-navy" />
                 </div>
-                <p className="text-base font-semibold text-slate-900">
-                  Drop your Microsoft Word (.docx) file here
+                <p className="text-sm font-medium text-slate-700">
+                  <span className="font-semibold text-academic-navy hover:underline">
+                    Click to select your assignment
+                  </span>{' '}
+                  or drag and drop here
                 </p>
-                <p className="text-xs text-slate-500 mt-1">
-                  or click to browse your computer (Max 25 MB)
+                <p className="text-xs text-slate-400 mt-1">
+                  Supported formats: Microsoft Word (.docx) or PDF (up to 25 MB)
                 </p>
-                <span className="inline-block mt-3 px-2.5 py-1 text-xs font-medium text-slate-600 bg-slate-100 rounded-md">
-                  Supports drafts generated with ChatGPT, Gemini, or Word
-                </span>
               </div>
             )}
           </div>
         ) : (
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
-                <FileText className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-academic-navy shrink-0 shadow-2xs">
+                <FileText className="w-5 h-5 text-academic-blue" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-900">{assignmentFile.name}</p>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-slate-900 truncate max-w-xs sm:max-w-md">
+                  {assignmentFile.name}
+                </p>
                 <p className="text-xs text-slate-500">
                   {(assignmentFile.size / 1024).toFixed(1)} KB • Microsoft Word Document
                 </p>
@@ -241,7 +297,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
               <button
                 type="button"
                 onClick={() => assignmentInputRef.current?.click()}
-                className="text-xs font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-md hover:bg-slate-200 transition-colors"
+                className="text-xs font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-md hover:bg-slate-200 transition-colors cursor-pointer"
               >
                 Replace File
               </button>
@@ -294,24 +350,35 @@ export const UploadStep: React.FC<UploadStepProps> = ({
           </div>
 
           <div>
-            {templateFile ? (
-              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
-                <span className="truncate max-w-[150px] font-medium text-slate-800">
-                  {templateFile.name}
-                </span>
-                <button
-                  onClick={() => setTemplateFile(null)}
-                  className="text-slate-400 hover:text-rose-600"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+            {templateFile || hasTemplateFile ? (
+              <div className="space-y-1.5">
+                <div className="p-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 truncate min-w-0">
+                    <FileCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="truncate max-w-[150px] font-semibold text-emerald-950">
+                      {templateFile ? templateFile.name : 'Cover_Template.docx'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveTemplateClick}
+                    className="text-slate-400 hover:text-rose-600 p-1 transition-colors cursor-pointer"
+                    title="Remove template"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 font-medium px-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Faculty template loaded & active</span>
+                </div>
               </div>
             ) : (
               <button
                 type="button"
                 disabled={!jobId}
                 onClick={() => templateInputRef.current?.click()}
-                className="w-full py-2 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition-colors disabled:opacity-50"
+                className="w-full py-2 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Upload Template (.docx)
               </button>
@@ -339,22 +406,27 @@ export const UploadStep: React.FC<UploadStepProps> = ({
           </div>
 
           <div>
-            {guidelinesFile ? (
+            {guidelinesFile || hasGuidelinesFile ? (
               <div className="space-y-2">
-                <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
-                  <span className="truncate max-w-[150px] font-medium text-slate-800">
-                    {guidelinesFile.name}
-                  </span>
+                <div className="p-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 truncate min-w-0">
+                    <BookOpen className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="truncate max-w-[150px] font-semibold text-emerald-950">
+                      {guidelinesFile ? guidelinesFile.name : 'Module_Guidelines.pdf'}
+                    </span>
+                  </div>
                   <button
-                    onClick={() => { setGuidelinesFile(null); setGuidelineEvidence([]); }}
-                    className="text-slate-400 hover:text-rose-600"
+                    type="button"
+                    onClick={handleRemoveGuidelinesClick}
+                    className="text-slate-400 hover:text-rose-600 p-1 transition-colors cursor-pointer"
+                    title="Remove guidelines"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
                 {guidelineEvidence.length > 0 && (
                   <p className="text-[11px] leading-relaxed text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-md p-2">
-                    Applied to formatting: {guidelineEvidence.join(' ')} Review these settings in the next step.
+                    Applied to formatting: {guidelineEvidence.join(' ')}
                   </p>
                 )}
               </div>
@@ -363,7 +435,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
                 type="button"
                 disabled={!jobId}
                 onClick={() => guidelinesInputRef.current?.click()}
-                className="w-full py-2 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition-colors disabled:opacity-50"
+                className="w-full py-2 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Upload Guidelines (.pdf, .docx)
               </button>
@@ -391,24 +463,39 @@ export const UploadStep: React.FC<UploadStepProps> = ({
           </div>
 
           <div>
-            {rubricFile ? (
-              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
-                <span className="truncate max-w-[150px] font-medium text-slate-800">
-                  {rubricFile.name}
-                </span>
-                <button
-                  onClick={() => setRubricFile(null)}
-                  className="text-slate-400 hover:text-rose-600"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+            {rubricFile || hasRubricFile ? (
+              <div className="space-y-1.5">
+                <div className="p-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 truncate min-w-0">
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="truncate max-w-[150px] font-semibold text-emerald-950">
+                      {rubricFile ? rubricFile.name : 'Marking_Scheme.pdf'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveRubricClick}
+                    className="text-slate-400 hover:text-rose-600 p-1 transition-colors cursor-pointer"
+                    title="Remove marking rubric"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 font-medium px-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>
+                    {rubricCriteriaCount > 0
+                      ? `${rubricCriteriaCount} criteria extracted & active`
+                      : 'Marking scheme validated & attached'}
+                  </span>
+                </div>
               </div>
             ) : (
               <button
                 type="button"
                 disabled={!jobId}
                 onClick={() => rubricInputRef.current?.click()}
-                className="w-full py-2 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition-colors disabled:opacity-50"
+                className="w-full py-2 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Upload Rubric (.docx, .pdf)
               </button>
@@ -416,7 +503,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
             <input
               ref={rubricInputRef}
               type="file"
-              accept=".docx,.pdf"
+              accept=".docx,.pdf,.xlsx,.txt"
               onChange={handleRubricSelect}
               className="hidden"
             />
@@ -430,7 +517,7 @@ export const UploadStep: React.FC<UploadStepProps> = ({
           type="button"
           disabled={!assignmentFile || isUploading}
           onClick={onNext}
-          className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-academic-navy hover:bg-academic-indigo rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-academic-navy hover:bg-academic-indigo rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           <span>Continue to Requirements</span>
           <ArrowRight className="w-4 h-4" />
