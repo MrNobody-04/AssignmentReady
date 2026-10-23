@@ -1,6 +1,10 @@
 from typing import Any
+import logging
 from fastapi import Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+
+logger = logging.getLogger("uvicorn.error")
 
 class AppError(Exception):
     def __init__(
@@ -27,6 +31,22 @@ class JobNotFoundError(AppError):
 class DocumentProcessingError(AppError):
     def __init__(self, message: str, details: list[dict[str, Any]] | None = None):
         super().__init__(message, code="PROCESSING_ERROR", status_code=422, details=details)
+
+async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    request_id = getattr(request.state, "request_id", "req-unknown")
+    logger.error(f"[Validation Error 422] Path: {request.url.path} Errors: {exc.errors()}")
+    err_msgs = [f"{' -> '.join(str(loc) for loc in err['loc'])}: {err['msg']}" for err in exc.errors()]
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": {
+                "code": "VALIDATION_ERROR",
+                "message": "; ".join(err_msgs),
+                "details": exc.errors(),
+                "requestId": request_id,
+            }
+        },
+    )
 
 async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
     request_id = getattr(request.state, "request_id", "req-unknown")

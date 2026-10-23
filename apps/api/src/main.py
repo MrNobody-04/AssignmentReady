@@ -15,7 +15,9 @@ from src.common.errors import (
     JobNotFoundError,
     app_error_handler,
     general_error_handler,
+    validation_error_handler,
 )
+from fastapi.exceptions import RequestValidationError
 from src.common.security import (
     validate_uuid,
     sanitize_filename,
@@ -74,6 +76,7 @@ app.include_router(presentation_router)
 app.include_router(doctor_router)
 
 # Exception Handlers
+app.add_exception_handler(RequestValidationError, validation_error_handler)
 app.add_exception_handler(AppError, app_error_handler)
 app.add_exception_handler(Exception, general_error_handler)
 

@@ -2,10 +2,10 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 class MarginSettings(BaseModel):
-    top_inches: float = Field(default=1.0, ge=0.2, le=3.0)
-    bottom_inches: float = Field(default=1.0, ge=0.2, le=3.0)
-    left_inches: float = Field(default=1.0, ge=0.2, le=3.0)
-    right_inches: float = Field(default=1.0, ge=0.2, le=3.0)
+    top_inches: float = Field(default=1.0, ge=0.0, le=5.0)
+    bottom_inches: float = Field(default=1.0, ge=0.0, le=5.0)
+    left_inches: float = Field(default=1.0, ge=0.0, le=5.0)
+    right_inches: float = Field(default=1.0, ge=0.0, le=5.0)
 
 class HeadingStyle(BaseModel):
     font_family: str = "Times New Roman"
@@ -13,7 +13,7 @@ class HeadingStyle(BaseModel):
     bold: bool = True
     italic: bool = False
     color_hex: str = "#000000"
-    alignment: Literal["LEFT", "CENTER", "RIGHT", "JUSTIFY"] = "LEFT"
+    alignment: Literal["LEFT", "CENTER", "RIGHT", "JUSTIFY", "left", "center", "right", "justify"] = "LEFT"
     space_before_pt: float = 12.0
     space_after_pt: float = 6.0
     page_break_before: bool = False
@@ -22,7 +22,7 @@ class BodyStyle(BaseModel):
     font_family: str = "Times New Roman"
     font_size_pt: float = 12.0
     font_color_hex: str = "#000000"
-    alignment: Literal["LEFT", "CENTER", "RIGHT", "JUSTIFY"] = "LEFT"
+    alignment: Literal["LEFT", "CENTER", "RIGHT", "JUSTIFY", "left", "center", "right", "justify"] = "LEFT"
     line_spacing: float = 1.5  # 1.0, 1.15, 1.5, 2.0
     space_before_pt: float = 0.0
     space_after_pt: float = 6.0
@@ -30,18 +30,18 @@ class BodyStyle(BaseModel):
 
 class CoverPageData(BaseModel):
     enabled: bool = True
-    mode: Literal["builtin", "template"] = "builtin"
+    mode: Literal["builtin", "template", "BUILTIN", "TEMPLATE"] = "builtin"
     replace_existing: bool = True
-    student_name: str = ""
-    student_id: str = ""
-    institution: str = ""
-    department: str = ""
-    course: str = ""
-    module_code: str = ""
-    assignment_title: str = ""
-    assignment_subtitle: str = ""
-    lecturer_name: str = ""
-    submission_date: str = ""
+    student_name: str | None = ""
+    student_id: str | None = ""
+    institution: str | None = ""
+    department: str | None = ""
+    course: str | None = ""
+    module_code: str | None = ""
+    assignment_title: str | None = ""
+    assignment_subtitle: str | None = ""
+    lecturer_name: str | None = ""
+    submission_date: str | None = ""
 
 class MarkingCriterion(BaseModel):
     name: str
@@ -52,27 +52,27 @@ class MarkingCriterion(BaseModel):
 class MarkingSchemeData(BaseModel):
     enabled: bool = False
     title: str = "Official Assessment Criteria & Marking Scheme"
-    placement: Literal["after_cover", "before_references", "end_of_document"] = "end_of_document"
+    placement: Literal["after_cover", "before_references", "end_of_document", "AFTER_COVER", "BEFORE_REFERENCES", "END_OF_DOCUMENT"] = "end_of_document"
     replace_existing: bool = False
     criteria: list[MarkingCriterion] = []
-    notes: str = ""
+    notes: str | None = ""
 
 class PageNumberingSettings(BaseModel):
     enabled: bool = True
     hide_on_cover: bool = True
     roman_front_matter: bool = True
     restart_at_introduction: bool = True
-    footer_alignment: Literal["LEFT", "CENTER", "RIGHT"] = "RIGHT"
+    footer_alignment: Literal["LEFT", "CENTER", "RIGHT", "left", "center", "right"] = "RIGHT"
 
 class TableOfContentsSettings(BaseModel):
     enabled: bool = True
     title: str = "Table of Contents"
-    depth: int = Field(default=3, ge=1, le=4)
+    depth: int = Field(default=3, ge=1, le=5)
 
 class DeclarationSettings(BaseModel):
     enabled: bool = False
     title: str = "Declaration of Originality"
-    statement: str = (
+    statement: str | None = (
         "I hereby declare that this assignment represents my own original academic work, "
         "prepared in accordance with institutional academic integrity regulations. "
         "All secondary literature, data sources, and external quotations have been duly cited."
@@ -82,12 +82,12 @@ class DeclarationSettings(BaseModel):
 class AcknowledgementSettings(BaseModel):
     enabled: bool = False
     title: str = "Acknowledgements"
-    content: str = ""
+    content: str | None = ""
 
 class AbstractSettings(BaseModel):
     enabled: bool = False
     title: str = "Abstract"
-    content: str = ""
+    content: str | None = ""
 
 class ListOfFiguresSettings(BaseModel):
     enabled: bool = True
@@ -109,7 +109,7 @@ class ListOfAbbreviationsSettings(BaseModel):
     items: list[AbbreviationItem] = Field(default_factory=list)
 
 class FormattingSettings(BaseModel):
-    paper_size: Literal["A4", "LETTER"] = "A4"
+    paper_size: Literal["A4", "LETTER", "a4", "letter"] = "A4"
     margins: MarginSettings = Field(default_factory=MarginSettings)
     body: BodyStyle = Field(default_factory=BodyStyle)
     heading1: HeadingStyle = Field(

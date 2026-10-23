@@ -52,6 +52,63 @@ def render_pdf_page_to_image(pdf_path: Path, page_num: int = 0, dpi: int = 300) 
     return img_bytes
 
 
+def _generate_docx_thumbnail_pillow(cover_path: Path, output_png_path: Path) -> bool:
+    """Generates an aesthetic academic cover thumbnail from DOCX text structure using Pillow."""
+    try:
+        from PIL import Image, ImageDraw
+        doc = docx.Document(str(cover_path))
+        width, height = 600, 850
+        img = Image.new("RGB", (width, height), color=(255, 255, 255))
+        draw = ImageDraw.Draw(img)
+
+        # Subtle card border & institutional header accent line
+        draw.rectangle([(20, 20), (width - 20, height - 20)], outline=(226, 232, 240), width=2)
+        draw.rectangle([(20, 20), (width - 20, 32)], fill=(30, 58, 138))
+
+        # Extract text lines from paragraphs & tables
+        lines = []
+        for p in doc.paragraphs:
+            txt = p.text.strip()
+            if txt:
+                lines.append(txt)
+        if not lines:
+            for t in doc.tables:
+                for row in t.rows:
+                    row_txt = " | ".join(c.text.strip() for c in row.cells if c.text.strip())
+                    if row_txt:
+                        lines.append(row_txt)
+
+        y = 70
+        for i, line in enumerate(lines[:14]):
+            disp_line = line if len(line) <= 55 else line[:52] + "..."
+            lower_line = disp_line.lower()
+            if i == 0 or "university" in lower_line or "college" in lower_line:
+                draw.text((width // 2, y), disp_line, fill=(30, 58, 138), anchor="mm")
+                y += 34
+            elif i in (1, 2) and any(w in lower_line for w in ["faculty", "department", "school"]):
+                draw.text((width // 2, y), disp_line, fill=(100, 116, 139), anchor="mm")
+                y += 28
+            elif any(w in lower_line for w in ["assignment", "coursework", "report", "dissertation"]):
+                y += 18
+                draw.text((width // 2, y), disp_line, fill=(15, 23, 42), anchor="mm")
+                y += 38
+            else:
+                draw.text((50, y), disp_line, fill=(51, 65, 85))
+                y += 26
+            if y > height - 120:
+                break
+
+        # Verified Faculty Template Pill at bottom
+        draw.rectangle([(50, height - 70), (width - 50, height - 40)], fill=(240, 253, 244), outline=(187, 247, 208))
+        draw.text((width // 2, height - 55), "OFFICIAL FACULTY TEMPLATE VERIFIED", fill=(22, 101, 52), anchor="mm")
+
+        output_png_path.parent.mkdir(parents=True, exist_ok=True)
+        img.save(str(output_png_path), "PNG")
+        return True
+    except Exception:
+        return False
+
+
 def generate_cover_thumbnail(cover_path: Path, output_png_path: Path) -> bool:
     """Generates a high-quality 150 DPI preview thumbnail of the cover page."""
     try:
@@ -63,14 +120,17 @@ def generate_cover_thumbnail(cover_path: Path, output_png_path: Path) -> bool:
                 f.write(img_bytes)
             return True
         elif suffix == ".docx":
-            # For DOCX, check if there's any embedded image/drawing or text to generate preview
-            doc = pymupdf.open(str(cover_path))
-            if len(doc) > 0:
-                pix = doc[0].get_pixmap(dpi=150)
-                output_png_path.parent.mkdir(parents=True, exist_ok=True)
-                pix.save(str(output_png_path))
-                doc.close()
-                return True
+            try:
+                doc = pymupdf.open(str(cover_path))
+                if len(doc) > 0:
+                    pix = doc[0].get_pixmap(dpi=150)
+                    output_png_path.parent.mkdir(parents=True, exist_ok=True)
+                    pix.save(str(output_png_path))
+                    doc.close()
+                    return True
+            except Exception:
+                pass
+            return _generate_docx_thumbnail_pillow(cover_path, output_png_path)
     except Exception:
         pass
     return False

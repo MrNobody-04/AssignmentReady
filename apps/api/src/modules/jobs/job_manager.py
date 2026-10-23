@@ -420,17 +420,14 @@ class JobManager:
             except Exception:
                 pass
 
-        # 2. Try Word COM (docx2pdf) if on Windows and LibreOffice was not available
+        # 2. Try Word COM (docx2pdf) in an isolated subprocess if on Windows and LibreOffice was not available
+        # Using an isolated subprocess protects the FastAPI server against Windows SEH fatal exceptions (e.g. 0x800706be RPC failures)
         if not converted:
             try:
-                import pythoncom
-                pythoncom.CoInitialize()
-                try:
-                    import docx2pdf
-                    docx2pdf.convert(str(docx_path), str(output_pdf))
-                    converted = output_pdf.exists()
-                finally:
-                    pythoncom.CoUninitialize()
+                import sys
+                cmd = [sys.executable, "-m", "docx2pdf", str(docx_path), str(output_pdf)]
+                subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15)
+                converted = output_pdf.exists()
             except Exception:
                 pass
 
