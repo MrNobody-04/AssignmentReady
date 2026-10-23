@@ -117,12 +117,14 @@ export const Workspace: React.FC<WorkspaceProps> = ({
       const s = analysis.suggestions;
       if (s.paper_size) merged.paper_size = s.paper_size;
       if (s.body) {
-        const bodyAlignment = s.body.alignment === ('JUSTIFIED' as any) ? 'JUSTIFY' : s.body.alignment;
-        merged.body = { ...merged.body, ...s.body, ...(bodyAlignment ? { alignment: bodyAlignment } : {}) };
+        const rawAlign = String(s.body.alignment || '').toUpperCase();
+        const bodyAlignment: any = (rawAlign === 'JUSTIFIED' || rawAlign === 'JUSTIFY') ? 'JUSTIFY' : (s.body.alignment || 'LEFT');
+        merged.body = { ...merged.body, ...s.body, alignment: bodyAlignment };
       }
       if (s.heading1) {
-        const headingAlignment = s.heading1.alignment === ('JUSTIFIED' as any) ? 'JUSTIFY' : s.heading1.alignment;
-        merged.heading1 = { ...merged.heading1, ...s.heading1, ...(headingAlignment ? { alignment: headingAlignment } : {}) };
+        const rawAlign = String(s.heading1.alignment || '').toUpperCase();
+        const headingAlignment: any = (rawAlign === 'JUSTIFIED' || rawAlign === 'JUSTIFY') ? 'JUSTIFY' : (s.heading1.alignment || 'LEFT');
+        merged.heading1 = { ...merged.heading1, ...s.heading1, alignment: headingAlignment };
       }
       if (s.margins) {
         merged.margins = { ...merged.margins, ...s.margins };

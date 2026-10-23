@@ -35,7 +35,7 @@ DEFAULT_CRITERIA_CONFIG = {
     "line_spacing": 1.5,
     "paragraph_space_before_pt": 0.0,
     "paragraph_space_after_pt": 6.0,
-    "alignment": "JUSTIFIED",
+    "alignment": "JUSTIFY",
     "paper_size": "A4",
     "margins_top_inches": 1.0,
     "margins_bottom_inches": 1.0,
@@ -157,7 +157,7 @@ def analyze_guidelines(text: str) -> dict:
 
     # 7. Text Alignment
     if "justified" in lowered or "justify" in lowered:
-        config["alignment"] = "JUSTIFIED"
+        config["alignment"] = "JUSTIFY"
         evidence.append("Detected justified text alignment.")
         detected_fields.append("alignment")
     elif "left aligned" in lowered or "left-aligned" in lowered or "align left" in lowered:
