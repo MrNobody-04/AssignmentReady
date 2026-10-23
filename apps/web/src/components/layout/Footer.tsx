@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ShieldCheck,
   FileLock2,
@@ -25,6 +25,20 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenProfiles,
 }) => {
   const currentYear = new Date().getFullYear();
+  const [gitCommit, setGitCommit] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/health')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.git_commit) {
+          setGitCommit(data.git_commit.slice(0, 7));
+        }
+      })
+      .catch(() => {
+        // Fallback silently if offline or standalone
+      });
+  }, []);
 
   return (
     <footer className="relative bg-slate-950 text-slate-300 mt-24 border-t border-slate-800/80">
@@ -141,6 +155,12 @@ export const Footer: React.FC<FooterProps> = ({
           </p>
 
           <div className="flex items-center gap-6 text-slate-400 text-xs">
+            {gitCommit && (
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Build {gitCommit}</span>
+              </span>
+            )}
             <button
               onClick={onOpenPrivacy}
               className="hover:text-white transition-colors"

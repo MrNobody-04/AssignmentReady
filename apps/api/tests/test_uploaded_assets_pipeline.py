@@ -41,6 +41,7 @@ def test_uploaded_template_and_after_cover_rubric_are_preserved(tmp_path: Path):
 
     settings = FormattingSettings()
     settings.cover_page.mode = "template"
+    settings.cover_page.fill_placeholders = True
     settings.cover_page.student_name = "Asha Rai"
     settings.cover_page.module_code = "CS401"
     settings.marking_scheme.enabled = True

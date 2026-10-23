@@ -1,9 +1,13 @@
+import os
 import time
 import shutil
+import logging
 import subprocess
 from pathlib import Path
 from typing import Dict, Optional, List
 import docx
+
+logger = logging.getLogger("assignmentready.job_manager")
 
 from src.config import config
 from src.common.security import get_job_directory, sanitize_filename
@@ -402,9 +406,24 @@ class JobManager:
     def _convert_to_pdf(self, docx_path: Path, output_dir: Path, job_id: Optional[str] = None) -> Optional[Path]:
         output_pdf = output_dir / f"{docx_path.stem}.pdf"
         converted = False
+        engine_used = "none"
 
-        # 1. Try LibreOffice headless
-        if config.libreoffice_path:
+        # 1. Try Word COM with field updating in isolated subprocess on Windows
+        if os.name == "nt":
+            try:
+                import sys
+                updater_script = Path(__file__).resolve().parent.parent / "documents" / "word_updater.py"
+                cmd = [sys.executable, str(updater_script), str(docx_path), str(output_pdf)]
+                proc = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=25)
+                if proc.returncode == 0 and output_pdf.exists():
+                    converted = True
+                    engine_used = "Word COM"
+                    logger.info("PDF conversion succeeded via Word COM with refreshed TOC/LOF/LOT fields.")
+            except Exception as e:
+                logger.warning(f"Word COM subprocess conversion attempt failed: {e}")
+
+        # 2. Fallback to LibreOffice headless if Word COM was unavailable or failed
+        if not converted and config.libreoffice_path:
             try:
                 cmd = [
                     config.libreoffice_path,
@@ -416,20 +435,12 @@ class JobManager:
                     str(output_dir),
                 ]
                 subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=45, check=True)
-                converted = output_pdf.exists()
-            except Exception:
-                pass
-
-        # 2. Try Word COM (docx2pdf) in an isolated subprocess if on Windows and LibreOffice was not available
-        # Using an isolated subprocess protects the FastAPI server against Windows SEH fatal exceptions (e.g. 0x800706be RPC failures)
-        if not converted:
-            try:
-                import sys
-                cmd = [sys.executable, "-m", "docx2pdf", str(docx_path), str(output_pdf)]
-                subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15)
-                converted = output_pdf.exists()
-            except Exception:
-                pass
+                if output_pdf.exists():
+                    converted = True
+                    engine_used = "LibreOffice Headless"
+                    logger.info("PDF conversion succeeded via LibreOffice headless.")
+            except Exception as e:
+                logger.warning(f"LibreOffice conversion failed: {e}")
 
         # 3. If PDF was converted and job had a native vector PDF cover or PDF rubric, merge at PDF level
         if converted and job_id:
@@ -448,9 +459,10 @@ class JobManager:
                         marking_scheme_pdf_path=rubric_pdf if rubric_pdf.exists() else None,
                     )
                     temp_pdf.unlink(missing_ok=True)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"PDF stream level merge failed: {e}")
 
+        logger.info(f"Final PDF status: converted={converted}, engine={engine_used}")
         return output_pdf if output_pdf.exists() else None
 
     def delete_job(self, job_id: str) -> None:

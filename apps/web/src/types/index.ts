@@ -36,6 +36,8 @@ export interface CoverPageData {
   enabled: boolean;
   mode: 'builtin' | 'template';
   replace_existing: boolean;
+  use_exact_cover?: boolean;
+  fill_placeholders?: boolean;
   student_name: string;
   student_id: string;
   institution: string;

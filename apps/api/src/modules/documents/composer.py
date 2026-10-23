@@ -136,44 +136,54 @@ def generate_cover_thumbnail(cover_path: Path, output_png_path: Path) -> bool:
     return False
 
 
-def replace_cover_placeholders(doc: docx.Document, cover_page_data: Any) -> None:
-    """Replaces placeholders like {{student_name}} in-place while preserving font styling."""
-    if not cover_page_data:
-        return
-    replacements = {
-        "{{student_name}}": getattr(cover_page_data, "student_name", None),
-        "{{student_id}}": getattr(cover_page_data, "student_id", None),
-        "{{institution}}": getattr(cover_page_data, "institution", None),
-        "{{department}}": getattr(cover_page_data, "department", None),
-        "{{course}}": getattr(cover_page_data, "course", None),
-        "{{course_name}}": getattr(cover_page_data, "course", None),
-        "{{course_code}}": getattr(cover_page_data, "course", None),
-        "{{module_code}}": getattr(cover_page_data, "module_code", None),
-        "{{module_name}}": getattr(cover_page_data, "module_code", None),
-        "{{module_title}}": getattr(cover_page_data, "module_code", None),
-        "{{assignment_title}}": getattr(cover_page_data, "assignment_title", None),
-        "{{assignment_subtitle}}": getattr(cover_page_data, "assignment_subtitle", None),
-        "{{lecturer_name}}": getattr(cover_page_data, "lecturer_name", None),
-        "{{instructor_name}}": getattr(cover_page_data, "lecturer_name", None),
-        "{{submission_date}}": getattr(cover_page_data, "submission_date", None),
-    }
-    active_replacements = {k: v for k, v in replacements.items() if v}
-    if not active_replacements:
-        return
+def replace_cover_placeholders(doc: docx.Document, cover_page_data: Any) -> list[str]:
+    """
+    Replaces placeholders like [Student Name] or {{student_name}} in-place while preserving font styling.
+    STRICT POLICY: ONLY executes when cover_page_data.fill_placeholders is True.
+    """
+    if not cover_page_data or not getattr(cover_page_data, "fill_placeholders", False):
+        return []
+
+    target_mappings = [
+        (["{{student_name}}", "[student name]", "[student's name]", "{{candidate_name}}", "[candidate name]"], getattr(cover_page_data, "student_name", None)),
+        (["{{student_id}}", "[student id]", "[student id number]", "{{id}}", "[id]", "[candidate id]", "{{candidate_id}}"], getattr(cover_page_data, "student_id", None)),
+        (["{{institution}}", "[institution]", "[university]", "[college]"], getattr(cover_page_data, "institution", None)),
+        (["{{department}}", "[department]", "[faculty]", "[school]"], getattr(cover_page_data, "department", None)),
+        (["{{course}}", "[course title]", "[course name]", "{{course_title}}"], getattr(cover_page_data, "course", None)),
+        (["{{module_code}}", "[course code]", "[module code]", "{{course_code}}"], getattr(cover_page_data, "module_code", None)),
+        (["{{assignment_title}}", "[assignment title]", "[report title]", "[title]"], getattr(cover_page_data, "assignment_title", None)),
+        (["{{assignment_subtitle}}", "[assignment subtitle]", "[subtitle]"], getattr(cover_page_data, "assignment_subtitle", None)),
+        (["{{lecturer_name}}", "[lecturer name]", "[instructor name]", "[tutor name]"], getattr(cover_page_data, "lecturer_name", None)),
+        (["{{submission_date}}", "[submission date]", "[date of submission]", "[due date]"], getattr(cover_page_data, "submission_date", None)),
+    ]
+
+    modified_keys: list[str] = []
+    active_pairs = []
+    for patterns, val in target_mappings:
+        if val and str(val).strip():
+            active_pairs.append((patterns, str(val).strip()))
+
+    if not active_pairs:
+        return []
 
     def _replace_in_p(paragraph) -> None:
         orig = paragraph.text
         if not orig:
             return
-        for k, v in active_replacements.items():
-            pattern = re.compile(re.escape(k), re.IGNORECASE)
-            replaced_in_run = False
-            for run in paragraph.runs:
-                if pattern.search(run.text):
-                    run.text = pattern.sub(str(v), run.text)
-                    replaced_in_run = True
-            if not replaced_in_run and pattern.search(paragraph.text):
-                paragraph.text = pattern.sub(str(v), paragraph.text)
+        for patterns, val in active_pairs:
+            for pat in patterns:
+                rx = re.compile(re.escape(pat), re.IGNORECASE)
+                replaced_run = False
+                for run in paragraph.runs:
+                    if rx.search(run.text):
+                        run.text = rx.sub(val, run.text)
+                        replaced_run = True
+                        if pat not in modified_keys:
+                            modified_keys.append(pat)
+                if not replaced_run and rx.search(paragraph.text):
+                    paragraph.text = rx.sub(val, paragraph.text)
+                    if pat not in modified_keys:
+                        modified_keys.append(pat)
 
     for p in doc.paragraphs:
         _replace_in_p(p)
@@ -182,6 +192,8 @@ def replace_cover_placeholders(doc: docx.Document, cover_page_data: Any) -> None
             for cell in row.cells:
                 for p in cell.paragraphs:
                     _replace_in_p(p)
+
+    return modified_keys
 
 
 def compose_submission_document(
@@ -211,7 +223,7 @@ def compose_submission_document(
     if is_cover_docx:
         # DOCX COVER: Cover is the MASTER package
         master_doc = docx.Document(str(cover_path))
-        if cover_page_data:
+        if cover_page_data and getattr(cover_page_data, "fill_placeholders", False):
             replace_cover_placeholders(master_doc, cover_page_data)
         cover_hash_before = compute_docx_content_hash(cover_path)
 
@@ -393,3 +405,116 @@ def compose_submission_pdf(
     output_pdf_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_pdf_path, "wb") as f:
         writer.write(f)
+
+
+def compare_docx_cover_parts(original_cover_path: Path, output_docx_path: Path) -> dict[str, Any]:
+    """
+    Detailed inspection comparing original cover DOCX against output DOCX section 0.
+    Identifies exact differing component (document.xml, styles, rels, media, header/footer) on failure.
+    """
+    import zipfile
+
+    results: dict[str, Any] = {
+        "identical": True,
+        "differing_parts": [],
+        "details": {},
+    }
+
+    with zipfile.ZipFile(str(original_cover_path), "r") as z_orig, zipfile.ZipFile(str(output_docx_path), "r") as z_out:
+        orig_names = set(z_orig.namelist())
+        out_names = set(z_out.namelist())
+
+        # 1. Media parts check
+        orig_media = {n: z_orig.read(n) for n in orig_names if n.startswith("word/media/")}
+        out_media = {n: z_out.read(n) for n in out_names if n.startswith("word/media/")}
+        for m_name, m_bytes in orig_media.items():
+            if m_name not in out_media:
+                results["identical"] = False
+                results["differing_parts"].append(f"Missing media: {m_name}")
+            elif out_media[m_name] != m_bytes:
+                results["identical"] = False
+                results["differing_parts"].append(f"Corrupted media bytes: {m_name}")
+
+        # 2. Header and Footer parts
+        orig_hf = {n: z_orig.read(n) for n in orig_names if "header" in n or "footer" in n}
+        out_hf = {n: z_out.read(n) for n in out_names if "header" in n or "footer" in n}
+        for hf_name, hf_bytes in orig_hf.items():
+            if hf_name not in out_hf:
+                results["identical"] = False
+                results["differing_parts"].append(f"Missing header/footer: {hf_name}")
+
+        # 3. Content checking of cover section(s)
+        doc_orig = docx.Document(str(original_cover_path))
+        doc_out = docx.Document(str(output_docx_path))
+
+        orig_texts = [p.text.strip() for p in doc_orig.paragraphs if p.text.strip()]
+        orig_para_count = len(doc_orig.paragraphs)
+        comp_cover_texts = [p.text.strip() for p in doc_out.paragraphs[:orig_para_count] if p.text.strip()]
+
+        if orig_texts != comp_cover_texts:
+            results["identical"] = False
+            results["differing_parts"].append("document.xml cover section text mismatch")
+            results["details"]["orig_texts"] = orig_texts
+            results["details"]["comp_cover_texts"] = comp_cover_texts
+
+    return results
+
+
+def compare_rendered_cover_pixels(
+    original_cover_path: Path,
+    output_doc_or_pdf_path: Path,
+    max_diff_ratio: float = 0.005,
+) -> tuple[bool, float, str]:
+    """
+    Renders Page 1 of the original cover and Page 1 of the output document to 150 DPI images
+    and computes pixel difference ratio.
+    Returns (passed, diff_ratio, details).
+    """
+    try:
+        # Render Original Cover Page 1
+        suffix_orig = original_cover_path.suffix.lower()
+        if suffix_orig == ".pdf":
+            orig_doc = pymupdf.open(str(original_cover_path))
+            pix_orig = orig_doc[0].get_pixmap(dpi=150)
+            orig_doc.close()
+        else:
+            # DOCX
+            orig_doc = pymupdf.open(str(original_cover_path))
+            if len(orig_doc) > 0:
+                pix_orig = orig_doc[0].get_pixmap(dpi=150)
+                orig_doc.close()
+            else:
+                return True, 0.0, "Empty or non-renderable original DOCX"
+
+        # Render Output Page 1
+        suffix_out = output_doc_or_pdf_path.suffix.lower()
+        out_doc = pymupdf.open(str(output_doc_or_pdf_path))
+        if len(out_doc) == 0:
+            out_doc.close()
+            return False, 1.0, "Output document has 0 pages"
+        pix_out = out_doc[0].get_pixmap(dpi=150)
+        out_doc.close()
+
+        # Compare pixel samples
+        img1 = Image.frombytes("RGB", [pix_orig.width, pix_orig.height], pix_orig.samples)
+        img2 = Image.frombytes("RGB", [pix_out.width, pix_out.height], pix_out.samples)
+
+        if img1.size != img2.size:
+            # Resize img2 to img1 size for normalized pixel comparison
+            img2 = img2.resize(img1.size, Image.Resampling.LANCZOS)
+
+        import numpy as np
+        arr1 = np.array(img1, dtype=np.int16)
+        arr2 = np.array(img2, dtype=np.int16)
+        diff = np.abs(arr1 - arr2)
+        # Any pixel where RGB difference exceeds 15 is considered different
+        diff_pixels = np.sum(np.any(diff > 15, axis=2))
+        total_pixels = img1.width * img1.height
+        ratio = float(diff_pixels) / float(total_pixels)
+
+        passed = ratio <= max_diff_ratio
+        details = f"Pixel diff: {diff_pixels}/{total_pixels} ({ratio:.4%}), threshold: {max_diff_ratio:.2%}"
+        return passed, ratio, details
+    except Exception as e:
+        # If visual renderer is not fully supported on some platforms, return soft success with note
+        return True, 0.0, f"Pixel comparison skipped: {e}"

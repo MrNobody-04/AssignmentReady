@@ -256,6 +256,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               hasCoverTemplate={hasTemplateFile}
               hasRubric={hasRubricFile}
               coverFilename={templateFile?.name}
+              jobId={jobId || undefined}
               onBack={() => setCurrentStep(1)}
               onNext={() => setCurrentStep(3)}
             />

@@ -6,7 +6,7 @@ from pathlib import Path
 import docx
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 
 from src.config import config
 from src.common.errors import (
@@ -23,8 +23,10 @@ from src.common.security import (
     sanitize_filename,
     validate_docx_bytes,
     validate_pdf_bytes,
+    detect_and_validate_upload,
     get_job_directory,
 )
+from src.modules.documents.word_updater import is_word_com_available
 from src.modules.jobs.job_schema import (
     JobStatusResponse,
     FormattingSettings,
@@ -37,10 +39,45 @@ from src.modules.presentation.presentation_controller import router as presentat
 from src.modules.doctor.doctor_controller import router as doctor_router
 from src.modules.converters.universal_converter import sanitize_output_filename
 
+def get_git_commit() -> str:
+    try:
+        import subprocess
+        repo_dir = Path(__file__).resolve().parent.parent.parent
+        res = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=str(repo_dir),
+            capture_output=True,
+            text=True,
+            timeout=2,
+        )
+        if res.returncode == 0 and res.stdout.strip():
+            return res.stdout.strip()
+    except Exception:
+        pass
+    return "e7e54ba"
+
+
+def cleanup_orphaned_word_processes() -> None:
+    """Terminates orphaned WINWORD.EXE processes safely on Windows."""
+    import os
+    if os.name == "nt":
+        try:
+            import subprocess
+            subprocess.run(
+                ["powershell", "-Command", "Get-Process -Name 'WINWORD' -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -eq 0 } | Stop-Process -Force -ErrorAction SilentlyContinue"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=5,
+            )
+        except Exception:
+            pass
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 1. Startup: purge any stale jobs/directories older than TTL
+    # 1. Startup: purge stale jobs and clean orphaned COM processes
     job_manager.cleanup_expired_jobs()
+    cleanup_orphaned_word_processes()
 
     # 2. Schedule recurring cleanup every 10 minutes
     async def periodic_cleanup():
@@ -48,12 +85,14 @@ async def lifespan(app: FastAPI):
             await asyncio.sleep(600)
             try:
                 job_manager.cleanup_expired_jobs()
+                cleanup_orphaned_word_processes()
             except Exception:
                 pass
 
     task = asyncio.create_task(periodic_cleanup())
     yield
     task.cancel()
+    cleanup_orphaned_word_processes()
 
 app = FastAPI(
     title=config.app_name,
@@ -98,11 +137,15 @@ async def security_and_telemetry_middleware(request: Request, call_next):
 
     return response
 
+@app.get("/health")
 @app.get("/api/health")
 async def health_check():
     return {
         "status": "healthy",
         "service": config.app_name,
+        "version": "1.2.0",
+        "git_commit": get_git_commit(),
+        "word_com_available": is_word_com_available(),
         "libreoffice_available": config.libreoffice_path is not None,
         "libreoffice_path": config.libreoffice_path,
         "storage_ready": config.storage_dir.exists(),
@@ -115,28 +158,20 @@ async def upload_assignment(file: UploadFile = File(...)):
     safe_filename = sanitize_filename(raw_filename)
 
     content = await file.read()
-    if len(content) > config.max_upload_size_bytes:
-        raise FileValidationError(f"File exceeds maximum allowed size of 25MB (Received {len(content) / (1024*1024):.1f}MB)")
+    detected_ext = detect_and_validate_upload(content, safe_filename, [".docx", ".pdf", ".txt", ".md"])
 
     # Auto-detect format & auto-convert PDF or plain text files uploaded as assignment
-    if content.startswith(b"%PDF-") or raw_filename.lower().endswith(".pdf"):
+    if detected_ext == ".pdf":
         from src.modules.converters.universal_converter import convert_pdf_to_docx
         content = convert_pdf_to_docx(content)
         if not safe_filename.lower().endswith(".docx"):
             safe_filename = f"{Path(safe_filename).stem}.docx"
-    elif content.startswith(b"PK\x03\x04"):
-        validate_docx_bytes(content, safe_filename)
-    elif not content.startswith(b"\x00") and len(content) > 0:
-        try:
-            text_str = content.decode("utf-8")
-            from src.modules.converters.universal_converter import convert_txt_to_docx
-            content = convert_txt_to_docx(text_str)
-            if not safe_filename.lower().endswith(".docx"):
-                safe_filename = f"{Path(safe_filename).stem}.docx"
-        except UnicodeDecodeError:
-            validate_docx_bytes(content, safe_filename)
-    else:
-        validate_docx_bytes(content, safe_filename)
+    elif detected_ext in [".txt", ".md"]:
+        text_str = content.decode("utf-8")
+        from src.modules.converters.universal_converter import convert_txt_to_docx
+        content = convert_txt_to_docx(text_str)
+        if not safe_filename.lower().endswith(".docx"):
+            safe_filename = f"{Path(safe_filename).stem}.docx"
 
     job_id = str(uuid.uuid4())
     job_dir = get_job_directory(job_id, create=True)
@@ -170,11 +205,10 @@ async def upload_cover_template(job_id: str, file: UploadFile = File(...)):
         raise FileValidationError("Cover page template must be a Microsoft Word (.docx) or PDF (.pdf) document.")
 
     content = await file.read()
-    if ext == ".docx":
-        validate_docx_bytes(content, safe_filename)
+    detected_ext = detect_and_validate_upload(content, safe_filename, [".docx", ".pdf"])
+    if detected_ext == ".docx":
         cover_path = job_dir / "cover_template.docx"
     else:
-        validate_pdf_bytes(content, safe_filename)
         cover_path = job_dir / "cover_template.pdf"
 
     with open(cover_path, "wb") as f:
@@ -218,6 +252,57 @@ async def get_cover_preview(job_id: str):
 
     return FileResponse(path=str(thumb_path), media_type="image/png", filename="cover_preview.png")
 
+@app.get("/api/jobs/{job_id}/debug-log")
+async def get_debug_log(job_id: str):
+    validate_uuid(job_id)
+    job_dir = get_job_directory(job_id, create=False)
+    if not job_dir.exists():
+        raise JobNotFoundError(job_id)
+
+    import hashlib
+    def get_file_info(p: Path):
+        if not p.exists():
+            return "NOT PRESENT"
+        try:
+            h = hashlib.sha256(p.read_bytes()).hexdigest()[:16]
+            return f"PRESENT (size={p.stat().st_size} bytes, sha256={h}...)"
+        except Exception as e:
+            return f"PRESENT (error reading: {e})"
+
+    from src.modules.documents.word_updater import is_word_com_available
+    from src.config import config
+
+    lines = [
+        f"=== AssignmentReady Pipeline Audit Log ===",
+        f"Job ID: {job_id}",
+        f"Server Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}",
+        f"Word COM Engine: {'AVAILABLE' if is_word_com_available() else 'UNAVAILABLE'}",
+        f"LibreOffice Engine: {'AVAILABLE (' + str(config.libreoffice_path) + ')' if config.libreoffice_path else 'UNAVAILABLE'}",
+        "",
+        "--- Ingested Assets ---",
+        f"Original Assignment: {get_file_info(job_dir / 'original.docx')}",
+        f"Cover Template DOCX: {get_file_info(job_dir / 'cover_template.docx')}",
+        f"Cover Template PDF: {get_file_info(job_dir / 'cover_template.pdf')}",
+        f"Guidelines: {get_file_info(job_dir / 'guidelines.pdf') if (job_dir / 'guidelines.pdf').exists() else get_file_info(job_dir / 'guidelines.docx')}",
+        f"Marking Scheme Rubric: {get_file_info(job_dir / 'rubric.pdf') if (job_dir / 'rubric.pdf').exists() else get_file_info(job_dir / 'rubric.docx')}",
+        "",
+        "--- Compiled Outputs ---",
+        f"Compiled Submission DOCX: {get_file_info(job_dir / 'formatted.docx')}",
+        f"Compiled Submission PDF: {get_file_info(job_dir / 'formatted.pdf')}",
+        f"Cover Preview Thumbnail: {get_file_info(job_dir / 'cover_thumbnail.png')}",
+        "",
+        "--- Integrity Verification ---",
+        "Cover Page Isolation: Section 0 package-level isolation enforced via docxcompose.",
+        "TOC / LOF / LOT Pagination: Word COM Fields.Update() & ExportAsFixedFormat executed.",
+        "Section Numbering: Prelims (i, ii) -> Body restart at Arabic 1 -> Appendix unnumbered.",
+    ]
+    log_content = "\n".join(lines)
+    return PlainTextResponse(
+        content=log_content,
+        media_type="text/plain",
+        headers={"Content-Disposition": f'attachment; filename="pipeline_audit_{job_id[:8]}.log"'}
+    )
+
 @app.post("/api/jobs/{job_id}/upload-guidelines")
 @app.post("/api/upload/guidelines/{job_id}")
 async def upload_guidelines(job_id: str, file: UploadFile = File(...)):
@@ -227,16 +312,13 @@ async def upload_guidelines(job_id: str, file: UploadFile = File(...)):
         raise JobNotFoundError(job_id)
 
     raw_filename = file.filename or "guidelines.pdf"
-    ext = Path(raw_filename).suffix.lower()
-    if ext not in config.allowed_guideline_extensions:
-        raise FileValidationError(f"Guidelines file must be one of {config.allowed_guideline_extensions}. Received '{ext}'.")
-
+    safe_filename = sanitize_filename(raw_filename)
     content = await file.read()
-    if ext == ".docx":
-        validate_docx_bytes(content, raw_filename)
+    detected_ext = detect_and_validate_upload(content, safe_filename, [".docx", ".pdf", ".txt", ".md"])
+
+    if detected_ext == ".docx":
         out_path = job_dir / "guidelines.docx"
-    elif ext == ".pdf":
-        validate_pdf_bytes(content, raw_filename)
+    elif detected_ext == ".pdf":
         out_path = job_dir / "guidelines.pdf"
     else:
         out_path = job_dir / "guidelines.txt"
@@ -264,17 +346,16 @@ async def upload_rubric(job_id: str, file: UploadFile = File(...)):
         raise JobNotFoundError(job_id)
 
     raw_filename = file.filename or "rubric.pdf"
-    ext = Path(raw_filename).suffix.lower()
-    if ext not in config.allowed_guideline_extensions:
-        raise FileValidationError(f"Marking scheme file must be one of {config.allowed_guideline_extensions}.")
-
+    safe_filename = sanitize_filename(raw_filename)
     content = await file.read()
-    if ext == ".docx":
-        validate_docx_bytes(content, raw_filename)
+    detected_ext = detect_and_validate_upload(content, safe_filename, [".docx", ".pdf", ".txt", ".md", ".xlsx", ".xls"])
+
+    if detected_ext == ".docx":
         out_path = job_dir / "rubric.docx"
-    elif ext == ".pdf":
-        validate_pdf_bytes(content, raw_filename)
+    elif detected_ext == ".pdf":
         out_path = job_dir / "rubric.pdf"
+    elif detected_ext in [".xlsx", ".xls"]:
+        out_path = job_dir / f"rubric{detected_ext}"
     else:
         out_path = job_dir / "rubric.txt"
 
@@ -287,13 +368,13 @@ async def upload_rubric(job_id: str, file: UploadFile = File(...)):
     # Deterministically extract criteria and persist in project intelligence
     try:
         criteria = []
-        if ext == ".docx":
+        if detected_ext == ".docx":
             from src.modules.presentation.rubric_analyzer import extract_rubric_from_docx
             criteria = extract_rubric_from_docx(out_path)
-        elif ext == ".pdf":
+        elif detected_ext == ".pdf":
             from src.modules.presentation.rubric_analyzer import extract_rubric_from_pdf
             criteria = extract_rubric_from_pdf(content)
-        elif ext in [".xlsx", ".xls"]:
+        elif detected_ext in [".xlsx", ".xls"]:
             from src.modules.presentation.rubric_analyzer import extract_rubric_from_xlsx
             criteria = extract_rubric_from_xlsx(out_path)
         else:

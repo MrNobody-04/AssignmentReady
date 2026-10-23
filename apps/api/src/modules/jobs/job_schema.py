@@ -32,6 +32,8 @@ class CoverPageData(BaseModel):
     enabled: bool = True
     mode: Literal["builtin", "template", "BUILTIN", "TEMPLATE"] = "builtin"
     replace_existing: bool = True
+    use_exact_cover: bool = True
+    fill_placeholders: bool = False
     student_name: str | None = ""
     student_id: str | None = ""
     institution: str | None = ""

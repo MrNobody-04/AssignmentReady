@@ -10,6 +10,10 @@ import {
   Presentation,
   ShieldCheck,
   Lock,
+  AlertTriangle,
+  Bug,
+  Layers,
+  FileCode,
 } from 'lucide-react';
 import { FormattingSettings, ComplianceReport, InspectionResult } from '../../../types';
 import { api } from '../../../lib/api';
@@ -47,6 +51,7 @@ export const DownloadStep: React.FC<DownloadStepProps> = ({
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
   const [customFilename, setCustomFilename] = useState(() => {
     const stem = originalFilename.substring(0, originalFilename.lastIndexOf('.')) || originalFilename;
     return `${stem}_SubmissionReady`;
@@ -56,6 +61,7 @@ export const DownloadStep: React.FC<DownloadStepProps> = ({
   const docxDownloadUrl = `/api/jobs/${jobId}/download?filename=${encodeURIComponent(safeFilename)}`;
   const pdfDownloadUrl = `/api/jobs/${jobId}/convert?target_format=pdf`;
   const coverPreviewUrl = `/api/jobs/${jobId}/cover-preview`;
+  const debugLogUrl = `/api/jobs/${jobId}/debug-log`;
 
   const handleDelete = async () => {
     if (!window.confirm('Delete all temporary files for this assignment from the server now?')) {
@@ -177,86 +183,226 @@ export const DownloadStep: React.FC<DownloadStepProps> = ({
         </div>
       </div>
 
-      {/* Page 1 Cover Preview & Applied Specs Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* Page 1 Preview Card */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <span className="text-xs font-bold text-slate-900">Page 1: Official Cover</span>
-            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-              Verified
+      {/* Fallback Warning Banner if PDF conversion had limitations */}
+      {!_hasPdfVersion && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+          <div className="space-y-0.5">
+            <span className="font-bold block">Desktop Word Recommended:</span>
+            <span className="text-amber-800 leading-normal block">
+              Direct PDF compilation was deferred or timed out. Download the Word (.docx) file directly to view your document with full layout fidelity in desktop Microsoft Word.
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Multi-Page Document Architecture Preview */}
+      <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <Layers className="w-4 h-4 text-indigo-600" />
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              Multi-Page Submission Package Layout
+            </h3>
+          </div>
+          <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full">
+            Exact Order Enforced
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          {/* Page 1: Official Cover */}
+          <div className="p-3 rounded-xl border border-amber-200/80 bg-amber-50/40 space-y-2 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-amber-950">Page 1: Cover</span>
+              <span className="text-[9px] font-bold text-amber-800 bg-amber-200/80 px-1.5 py-0.5 rounded">
+                Unmodified
+              </span>
+            </div>
+            <div className="h-28 rounded-lg bg-white border border-amber-100 flex items-center justify-center overflow-hidden relative">
+              <img
+                src={coverPreviewUrl}
+                alt="Cover Preview"
+                className="max-h-24 object-contain"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
+              <FileText className="w-7 h-7 text-amber-600/70" />
+            </div>
+            <span className="text-[10px] text-amber-900/80 font-medium block text-center">
+              No page numbering
             </span>
           </div>
 
-          <div className="rounded-xl border border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center min-h-48 relative">
-            <img
-              src={coverPreviewUrl}
-              alt="Page 1 Cover Preview"
-              className="max-h-56 object-contain shadow-xs"
-              onError={(e) => {
-                // If thumbnail not available, show placeholder icon
-                (e.target as HTMLElement).style.display = 'none';
-              }}
-            />
-            <div className="text-center p-4">
-              <FileText className="w-8 h-8 text-academic-blue mx-auto mb-1 opacity-70" />
-              <span className="text-[10px] font-semibold text-slate-500 block">
-                Official Cover Sheet
+          {/* Page 2: TOC & Prelims */}
+          <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-900">Page 2: Front Matter</span>
+              <span className="text-[9px] font-bold text-slate-700 bg-slate-200 px-1.5 py-0.5 rounded">
+                Dynamic TOC
               </span>
-              <span className="text-[9px] text-slate-400">Positioned as Page 1</span>
             </div>
+            <div className="h-28 rounded-lg bg-white border border-slate-200 p-2 space-y-1.5 flex flex-col justify-center">
+              <div className="h-2 bg-slate-200 rounded w-3/4" />
+              <div className="h-1.5 bg-slate-100 rounded w-full flex justify-between">
+                <span className="text-[7px] text-slate-400">1.0 Introduction</span>
+                <span className="text-[7px] text-slate-400">1</span>
+              </div>
+              <div className="h-1.5 bg-slate-100 rounded w-full flex justify-between">
+                <span className="text-[7px] text-slate-400">2.0 Background</span>
+                <span className="text-[7px] text-slate-400">2</span>
+              </div>
+              <div className="h-1.5 bg-slate-100 rounded w-4/5" />
+            </div>
+            <span className="text-[10px] text-slate-500 font-medium block text-center">
+              Roman (i, ii) Prelims
+            </span>
+          </div>
+
+          {/* Page 3: Assignment Body */}
+          <div className="p-3 rounded-xl border border-blue-200/80 bg-blue-50/40 space-y-2 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-blue-950">Page 3: Body</span>
+              <span className="text-[9px] font-bold text-blue-800 bg-blue-200/80 px-1.5 py-0.5 rounded">
+                Formatted
+              </span>
+            </div>
+            <div className="h-28 rounded-lg bg-white border border-blue-100 p-2 space-y-1.5 flex flex-col justify-center">
+              <div className="h-2 bg-indigo-200 rounded w-1/2" />
+              <div className="h-1.5 bg-slate-100 rounded w-full" />
+              <div className="h-1.5 bg-slate-100 rounded w-full" />
+              <div className="h-1.5 bg-slate-100 rounded w-5/6" />
+            </div>
+            <span className="text-[10px] text-blue-900/80 font-medium block text-center">
+              Arabic 1 (Restart)
+            </span>
+          </div>
+
+          {/* Page 4: Marking Scheme Appendix (if present) */}
+          <div className="p-3 rounded-xl border border-teal-200/80 bg-teal-50/40 space-y-2 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-teal-950">
+                {hasRubric ? 'Appendix: Rubric' : 'Submission Ready'}
+              </span>
+              <span className="text-[9px] font-bold text-teal-800 bg-teal-200/80 px-1.5 py-0.5 rounded">
+                {hasRubric ? 'Preserved' : 'Complete'}
+              </span>
+            </div>
+            <div className="h-28 rounded-lg bg-white border border-teal-100 p-2 space-y-1.5 flex flex-col justify-center text-center">
+              {hasRubric ? (
+                <>
+                  <FileText className="w-6 h-6 text-teal-600 mx-auto opacity-80" />
+                  <span className="text-[8px] font-bold text-teal-900">Marking Criteria</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-6 h-6 text-teal-600 mx-auto" />
+                  <span className="text-[8px] font-bold text-teal-900">Fully Standardized</span>
+                </>
+              )}
+            </div>
+            <span className="text-[10px] text-teal-900/80 font-medium block text-center">
+              {hasRubric ? 'Unchanged Appendix' : '100% Compliant'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Applied Formatting Specs */}
+      <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-4">
+        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider pb-2 border-b border-slate-100">
+          Applied Specifications & Composition
+        </h3>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+            <span className="block text-[10px] text-slate-400 font-medium">Typography</span>
+            <span className="font-bold text-slate-800 block mt-0.5 truncate">
+              {settings.body.font_family} {settings.body.font_size_pt}pt ({settings.body.line_spacing}x)
+            </span>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+            <span className="block text-[10px] text-slate-400 font-medium">Paper & Margins</span>
+            <span className="font-bold text-slate-800 block mt-0.5">
+              {settings.paper_size} • {settings.margins.left_inches}" Margins
+            </span>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+            <span className="block text-[10px] text-slate-400 font-medium">Pagination</span>
+            <span className="font-bold text-slate-800 block mt-0.5">
+              Roman (i, ii) → Arabic 1 Body
+            </span>
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+            <span className="block text-[10px] text-slate-400 font-medium">Auto-Lists</span>
+            <span className="font-bold text-slate-800 block mt-0.5">
+              TOC {settings.list_of_figures.enabled ? '+ LOF' : ''} {settings.list_of_tables.enabled ? '+ LOT' : ''}
+            </span>
           </div>
         </div>
 
-        {/* Applied Formatting Specs */}
-        <div className="md:col-span-2 p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
-          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider pb-2 border-b border-slate-100">
-            Applied Specifications & Composition
-          </h3>
-
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="block text-[10px] text-slate-400 font-medium">Typography</span>
-              <span className="font-bold text-slate-800 block mt-0.5 truncate">
-                {settings.body.font_family} {settings.body.font_size_pt}pt ({settings.body.line_spacing}x)
-              </span>
-            </div>
-
-            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="block text-[10px] text-slate-400 font-medium">Paper & Margins</span>
-              <span className="font-bold text-slate-800 block mt-0.5">
-                {settings.paper_size} • {settings.margins.left_inches}" Margins
-              </span>
-            </div>
-
-            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="block text-[10px] text-slate-400 font-medium">Pagination</span>
-              <span className="font-bold text-slate-800 block mt-0.5">
-                Roman (i, ii) Prelims → Arabic 1 Body
-              </span>
-            </div>
-
-            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="block text-[10px] text-slate-400 font-medium">Auto-Lists</span>
-              <span className="font-bold text-slate-800 block mt-0.5">
-                TOC {settings.list_of_figures.enabled ? '+ LOF' : ''} {settings.list_of_tables.enabled ? '+ LOT' : ''}
-              </span>
-            </div>
+        {onCheckWithDoctor && (
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={onCheckWithDoctor}
+              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+            >
+              <Stethoscope className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Run Assignment Doctor Pre-Submission Check</span>
+            </button>
           </div>
+        )}
+      </div>
 
-          {onCheckWithDoctor && (
-            <div className="pt-2">
+      {/* Inline Pipeline Audit & Debug Panel */}
+      <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
+        <button
+          type="button"
+          onClick={() => setShowDebug(!showDebug)}
+          className="w-full px-5 py-3.5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Bug className="w-4 h-4 text-slate-500" />
+            <span className="text-xs font-bold text-slate-800">
+              Pipeline Audit & Verification Diagnostics
+            </span>
+          </div>
+          <span className="text-xs font-semibold text-indigo-600">
+            {showDebug ? 'Hide Diagnostics' : 'Show Diagnostics'}
+          </span>
+        </button>
+
+        {showDebug && (
+          <div className="px-5 pb-5 pt-2 border-t border-slate-100 space-y-3 bg-slate-50/50">
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Verify SHA-256 integrity hashes, Word COM field updates, and conversion engine performance logs for this assignment package.
+            </p>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <a
+                href={debugLogUrl}
+                download
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <FileCode className="w-3.5 h-3.5" />
+                <span>Download Pipeline Audit Log (.log)</span>
+              </a>
+
               <button
                 type="button"
-                onClick={onCheckWithDoctor}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                onClick={onModifySettings}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                <Stethoscope className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Run Assignment Doctor Pre-Submission Check</span>
+                <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+                <span>Re-run Formatting / Retry</span>
               </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Control Buttons (Adjust / Delete / Reset) */}

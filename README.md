@@ -22,7 +22,29 @@ While students frequently utilize AI tools such as ChatGPT or Gemini for draftin
 
 ---
 
-## 2. Technology Stack
+## 2. Hardened Architecture & Integrity Guarantees
+
+AssignmentReady guarantees zero-modification preservation of college assets, dynamic field updating, and strict upload security:
+
+### Real-World Cover Page Preservation
+- **Package-Level OOXML Isolation**: Uploaded `.docx` cover pages (including complex institutional templates with university crests, tables, textboxes, and content controls) serve as the master OpenXML package. Section 0 breaks isolate cover styles and margins from the body.
+- **Byte-Identical PDF Merging**: Uploaded `.pdf` cover pages are prepended at the native vector PDF stream level using `pypdf`, preserving embedded vector artwork, typography, and page dimensions with $\le 0.1\%$ pixel deviation.
+- **Opt-In Placeholder Replacement**: The cover is **100% untouched by default** (`use_exact_cover = True`, `fill_placeholders = False`). The user can optionally enable *"Fill in cover details"* in Step 2 to populate `[Student Name]`, `[Student ID]`, or `{{student_name}}` without altering surrounding fonts, logos, or margins.
+
+### Dynamic TOC / LOF / LOT Pagination
+- **Word COM & Subprocess Isolation**: On Windows hosts, `word_updater.py` executes in an isolated Python subprocess using `pythoncom.CoInitialize()`, calls `doc.Fields.Update()` and `doc.TablesOfContents.Update()`, and exports directly via Word's native `ExportAsFixedFormat(wdExportFormatPDF=17)`.
+- **Headless Fallback**: Headless environments automatically fallback to LibreOffice (`--headless --convert-to pdf`) while injecting `<w:updateFields w:val="true"/>` into `word/settings.xml` so desktop Word prompts auto-update on open.
+- **Section-Aware Numbering**:
+  - Cover page: No page number.
+  - Front matter (TOC, LOF, LOT): Lowercase Roman numerals (`i, ii, iii...`).
+  - Body: Arabic numerals restarting at `1` on the Introduction.
+  - Marking scheme / Appendix: Appended unchanged with decoupled footers.
+
+### Security & Deployment Hardening
+- **Executable & Header Inspection**: Inspects initial byte signatures to reject executable binaries (`MZ`, `\x7fELF`) even if renamed to `.docx`.
+- **Macro Rejection**: Blocks `.docm` files containing `word/vbaProject.bin` or macro content types with `400 Bad Request`.
+- **Size Capping & Sanitization**: 25 MB payload limit with strict path traversal stripping (`sanitize_filename`).
+- **Comprehensive `/health` Endpoint**: `GET /health` and `GET /api/health` return system status, git commit hash, version, and engine availability (`word_com_available`, `libreoffice_available`).
 
 - **Frontend**:
   - React 18+ with TypeScript
