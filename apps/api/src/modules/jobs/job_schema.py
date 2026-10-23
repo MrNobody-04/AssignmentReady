@@ -1,5 +1,5 @@
 from typing import Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 class MarginSettings(BaseModel):
     top_inches: float = Field(default=1.0, ge=0.0, le=5.0)
@@ -13,20 +13,42 @@ class HeadingStyle(BaseModel):
     bold: bool = True
     italic: bool = False
     color_hex: str = "#000000"
-    alignment: Literal["LEFT", "CENTER", "RIGHT", "JUSTIFY", "left", "center", "right", "justify"] = "LEFT"
+    alignment: Literal["LEFT", "CENTER", "RIGHT", "JUSTIFY", "JUSTIFIED", "left", "center", "right", "justify", "justified"] = "LEFT"
     space_before_pt: float = 12.0
     space_after_pt: float = 6.0
     page_break_before: bool = False
+
+    @field_validator("alignment", mode="before")
+    @classmethod
+    def normalize_alignment(cls, v):
+        if isinstance(v, str):
+            v_upper = v.strip().upper()
+            if v_upper in ("JUSTIFIED", "JUSTIFY"):
+                return "JUSTIFY"
+            if v_upper in ("LEFT", "CENTER", "RIGHT"):
+                return v_upper
+        return v
 
 class BodyStyle(BaseModel):
     font_family: str = "Times New Roman"
     font_size_pt: float = 12.0
     font_color_hex: str = "#000000"
-    alignment: Literal["LEFT", "CENTER", "RIGHT", "JUSTIFY", "left", "center", "right", "justify"] = "LEFT"
+    alignment: Literal["LEFT", "CENTER", "RIGHT", "JUSTIFY", "JUSTIFIED", "left", "center", "right", "justify", "justified"] = "LEFT"
     line_spacing: float = 1.5  # 1.0, 1.15, 1.5, 2.0
     space_before_pt: float = 0.0
     space_after_pt: float = 6.0
     first_line_indent_inches: float = 0.0
+
+    @field_validator("alignment", mode="before")
+    @classmethod
+    def normalize_alignment(cls, v):
+        if isinstance(v, str):
+            v_upper = v.strip().upper()
+            if v_upper in ("JUSTIFIED", "JUSTIFY"):
+                return "JUSTIFY"
+            if v_upper in ("LEFT", "CENTER", "RIGHT"):
+                return v_upper
+        return v
 
 class CoverPageData(BaseModel):
     enabled: bool = True
