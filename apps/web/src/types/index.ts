@@ -67,7 +67,9 @@ export interface MarkingSchemeData {
 export interface GuidelineAnalysis {
   suggestions: Partial<Pick<FormattingSettings, 'paper_size' | 'margins' | 'required_sections'>> & {
     body?: Partial<BodyStyle>;
+    heading1?: Partial<HeadingStyle>;
   };
+  criteria_config?: Record<string, any>;
   evidence: string[];
   has_suggestions: boolean;
 }

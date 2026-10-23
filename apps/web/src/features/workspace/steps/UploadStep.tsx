@@ -9,6 +9,9 @@ import {
   ArrowRight,
   Loader2,
   CheckCircle2,
+  Presentation,
+  ShieldCheck,
+  UploadCloud,
 } from 'lucide-react';
 import { GuidelineAnalysis, InspectionResult, MarkingCriterion } from '../../../types';
 import { api, ApiError } from '../../../lib/api';
@@ -33,6 +36,7 @@ interface UploadStepProps {
   onRemoveGuidelines?: () => void;
   onRemoveRubric?: () => void;
   onNext: () => void;
+  onDirectPPT?: (file: File) => void;
 }
 
 export const UploadStep: React.FC<UploadStepProps> = ({
@@ -42,8 +46,8 @@ export const UploadStep: React.FC<UploadStepProps> = ({
   templateFile: propTemplateFile,
   guidelinesFile: propGuidelinesFile,
   rubricFile: propRubricFile,
-  guidelineEvidence: propGuidelineEvidence = [],
-  rubricCriteriaCount = 0,
+  guidelineEvidence: _propGuidelineEvidence = [],
+  rubricCriteriaCount: _rubricCriteriaCount = 0,
   hasTemplateFile = false,
   hasGuidelinesFile = false,
   hasRubricFile = false,
@@ -55,15 +59,19 @@ export const UploadStep: React.FC<UploadStepProps> = ({
   onRemoveGuidelines,
   onRemoveRubric,
   onNext,
+  onDirectPPT,
 }) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isUploadingGuidelines, setIsUploadingGuidelines] = useState(false);
+  const [isUploadingRubric, setIsUploadingRubric] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // File state synchronized with lifted props so navigation never wipes files
+  // Synchronized file state
   const [templateFile, setTemplateFile] = useState<File | null>(propTemplateFile || null);
   const [guidelinesFile, setGuidelinesFile] = useState<File | null>(propGuidelinesFile || null);
   const [rubricFile, setRubricFile] = useState<File | null>(propRubricFile || null);
-  const [guidelineEvidence, setGuidelineEvidence] = useState<string[]>(propGuidelineEvidence || []);
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (propTemplateFile !== undefined) setTemplateFile(propTemplateFile);
@@ -78,45 +86,29 @@ export const UploadStep: React.FC<UploadStepProps> = ({
   }, [propRubricFile]);
 
   useEffect(() => {
-    if (propGuidelineEvidence !== undefined) setGuidelineEvidence(propGuidelineEvidence);
-  }, [propGuidelineEvidence]);
+    if (jobId && (templateFile || hasTemplateFile)) {
+      setCoverPreviewUrl(`/api/jobs/${jobId}/cover-preview`);
+    } else {
+      setCoverPreviewUrl(null);
+    }
+  }, [jobId, templateFile, hasTemplateFile]);
 
   const assignmentInputRef = useRef<HTMLInputElement>(null);
   const templateInputRef = useRef<HTMLInputElement>(null);
   const guidelinesInputRef = useRef<HTMLInputElement>(null);
   const rubricInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (assignmentFile && !jobId && !isUploading) {
-      processAssignmentFile(assignmentFile);
-    }
-  }, [assignmentFile, jobId]);
-
-  const handleAssignmentDrop = async (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      await processAssignmentFile(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleAssignmentSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      await processAssignmentFile(e.target.files[0]);
-    }
-  };
-
   const processAssignmentFile = async (file: File) => {
     setErrorMessage(null);
-    const lowerName = file.name.toLowerCase();
-    if (!lowerName.endsWith('.docx') && !lowerName.endsWith('.pdf')) {
-      setErrorMessage(
-        'Please upload a valid Microsoft Word (.docx) or PDF document.'
-      );
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const validExts = ['docx', 'pdf', 'txt', 'md'];
+    if (!ext || !validExts.includes(ext)) {
+      setErrorMessage(`Please upload a valid assignment file (${validExts.map((e) => `.${e}`).join(', ')}).`);
       return;
     }
 
     if (file.size > 25 * 1024 * 1024) {
-      setErrorMessage('File size exceeds the 25 MB upload limit.');
+      setErrorMessage('Assignment file exceeds the 25 MB size limit.');
       return;
     }
 
@@ -124,402 +116,553 @@ export const UploadStep: React.FC<UploadStepProps> = ({
     try {
       const res = await api.uploadAssignment(file);
       onAssignmentUploaded(res.job_id, file, res.inspection);
-    } catch (err: unknown) {
+    } catch (err) {
       if (err instanceof ApiError) {
         setErrorMessage(err.message);
       } else {
-        setErrorMessage('Failed to upload and parse the Word document. Please ensure it is not corrupted or password-protected.');
+        setErrorMessage('Failed to upload assignment document. Please verify your connection.');
       }
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleTemplateSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!jobId || !e.target.files || !e.target.files[0]) return;
-    const file = e.target.files[0];
-    if (!file.name.toLowerCase().endsWith('.docx')) {
-      setErrorMessage('Cover page template must be a Microsoft Word (.docx) file.');
+  const processTemplateFile = async (file: File) => {
+    if (!jobId) {
+      setErrorMessage('Please upload your assignment report first before uploading the cover page.');
       return;
     }
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (!ext || !['docx', 'pdf'].includes(ext)) {
+      setErrorMessage('Cover page must be an official Word (.docx) or PDF (.pdf) document.');
+      return;
+    }
+
+    setIsUploadingCover(true);
     try {
       await api.uploadCoverTemplate(jobId, file);
       setTemplateFile(file);
+      setCoverPreviewUrl(`/api/jobs/${jobId}/cover-preview?t=${Date.now()}`);
       onCoverTemplateUploaded(file);
-    } catch (err: unknown) {
-      const msg = err instanceof ApiError ? err.message : 'Failed to attach cover template';
-      setErrorMessage(msg);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setErrorMessage(err.message);
+      } else {
+        setErrorMessage('Failed to upload official cover page.');
+      }
+    } finally {
+      setIsUploadingCover(false);
     }
   };
 
-  const handleGuidelinesSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!jobId || !e.target.files || !e.target.files[0]) return;
-    const file = e.target.files[0];
+  const processGuidelinesFile = async (file: File) => {
+    if (!jobId) {
+      setErrorMessage('Please upload your assignment report first before uploading the criteria brief.');
+      return;
+    }
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (!ext || !['pdf', 'docx', 'txt'].includes(ext)) {
+      setErrorMessage('Criteria document must be a .pdf, .docx, or .txt file.');
+      return;
+    }
+
+    setIsUploadingGuidelines(true);
     try {
       const res = await api.uploadGuidelines(jobId, file);
       setGuidelinesFile(file);
-      const ev = res.guideline_analysis?.evidence || [];
-      setGuidelineEvidence(ev);
       onGuidelinesUploaded(file, res.guideline_analysis);
-    } catch (err: unknown) {
-      const msg = err instanceof ApiError ? err.message : 'Failed to attach guidelines';
-      setErrorMessage(msg);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setErrorMessage(err.message);
+      } else {
+        setErrorMessage('Failed to upload assignment criteria.');
+      }
+    } finally {
+      setIsUploadingGuidelines(false);
     }
   };
 
-  const handleRubricSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!jobId || !e.target.files || !e.target.files[0]) return;
-    const file = e.target.files[0];
+  const processRubricFile = async (file: File) => {
+    if (!jobId) {
+      setErrorMessage('Please upload your assignment report first before uploading the marking scheme.');
+      return;
+    }
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (!ext || !['pdf', 'docx', 'xlsx', 'txt'].includes(ext)) {
+      setErrorMessage('Marking scheme must be a .pdf, .docx, .xlsx, or .txt file.');
+      return;
+    }
+
+    setIsUploadingRubric(true);
     try {
       const res = await api.uploadMarkingScheme(jobId, file);
       setRubricFile(file);
-      onMarkingSchemeUploaded(file, res.criteria || []);
-    } catch (err: unknown) {
-      const msg = err instanceof ApiError ? err.message : 'Failed to attach marking scheme';
-      setErrorMessage(msg);
+      onMarkingSchemeUploaded(file, res.criteria);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setErrorMessage(err.message);
+      } else {
+        setErrorMessage('Failed to upload marking scheme.');
+      }
+    } finally {
+      setIsUploadingRubric(false);
     }
   };
 
-  const handleRemoveTemplateClick = () => {
-    setTemplateFile(null);
-    onRemoveTemplate?.();
-  };
-
-  const handleRemoveGuidelinesClick = () => {
-    setGuidelinesFile(null);
-    setGuidelineEvidence([]);
-    onRemoveGuidelines?.();
-  };
-
-  const handleRemoveRubricClick = () => {
-    setRubricFile(null);
-    onRemoveRubric?.();
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-4xl mx-auto px-1 sm:px-0">
-      {/* Header */}
-      <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-          Upload Your Assignment & College Assets
-        </h2>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1">
-          Upload your unformatted draft as a Microsoft Word document (.docx). You can also optionally attach your official college cover page template, guidelines, or marking rubric.
-        </p>
+    <div className="max-w-5xl mx-auto space-y-6">
+      {/* Top Banner: Direct PPT Shortcut & Guidance */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-indigo-50/80 via-white to-blue-50/80 border border-indigo-100/80 shadow-2xs">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0">
+            <UploadCloud className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-slate-900">Step 1 — Upload Required Assets</h2>
+            <p className="text-xs text-slate-500">
+              Provide your report draft, assignment brief, and official college cover page.
+            </p>
+          </div>
+        </div>
+
+        {assignmentFile && onDirectPPT && (
+          <button
+            type="button"
+            onClick={() => onDirectPPT(assignmentFile)}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer shrink-0"
+          >
+            <Presentation className="w-3.5 h-3.5" />
+            <span>Generate PPT Only</span>
+          </button>
+        )}
       </div>
 
-      {/* Error alert */}
       {errorMessage && (
-        <div className="p-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-3 text-sm">
-          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2 animate-fadeIn">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
           <div className="flex-1 font-medium">{errorMessage}</div>
-          <button
-            onClick={() => setErrorMessage(null)}
-            className="text-rose-500 hover:text-rose-700 cursor-pointer"
-          >
+          <button type="button" onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-700">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Primary Assignment Dropzone */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-xs">
-        <label className="block text-sm font-semibold text-slate-900 mb-2">
-          1. Existing Assignment Manuscript <span className="text-rose-600">*</span>
-        </label>
-
-        {!assignmentFile ? (
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleAssignmentDrop}
-            onClick={() => assignmentInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-xl p-5 sm:p-8 text-center cursor-pointer transition-colors ${
-              isUploading
-                ? 'border-academic-blue bg-blue-50/50'
-                : 'border-slate-300 hover:border-academic-navy hover:bg-slate-50'
-            }`}
-          >
-            <input
-              ref={assignmentInputRef}
-              type="file"
-              accept=".docx,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
-              onChange={handleAssignmentSelect}
-              className="hidden"
-            />
-            {isUploading ? (
-              <div className="flex flex-col items-center justify-center py-4">
-                <Loader2 className="w-8 h-8 text-academic-blue animate-spin mb-3" />
-                <p className="text-sm font-semibold text-slate-800">
-                  Inspecting Word document structure...
-                </p>
-                <p className="text-xs text-slate-500 mt-1">
-                  Verifying OpenXML tags, heading hierarchy, margins, and page layouts
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-2 sm:py-4">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 mb-3">
-                  <FileText className="w-6 h-6 text-academic-navy" />
-                </div>
-                <p className="text-sm font-medium text-slate-700">
-                  <span className="font-semibold text-academic-navy hover:underline">
-                    Click to select your assignment
-                  </span>{' '}
-                  or drag and drop here
-                </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  Supported formats: Microsoft Word (.docx) or PDF (up to 25 MB)
-                </p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-academic-navy shrink-0 shadow-2xs">
-                <FileText className="w-5 h-5 text-academic-blue" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-slate-900 truncate max-w-xs sm:max-w-md">
-                  {assignmentFile.name}
-                </p>
-                <p className="text-xs text-slate-500">
-                  {(assignmentFile.size / 1024).toFixed(1)} KB • Microsoft Word Document
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Validated
+      {/* Main 3 Core Upload Zones Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* ==================================================== */}
+        {/* ZONE 1: AI REPORT / ASSIGNMENT DRAFT */}
+        {/* ==================================================== */}
+        <div
+          className={`flex flex-col justify-between p-5 rounded-2xl border-2 transition-all ${
+            assignmentFile
+              ? 'bg-blue-50/40 border-blue-200 shadow-xs'
+              : 'bg-white border-dashed border-slate-300 hover:border-academic-blue/80 hover:bg-slate-50/50'
+          }`}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files?.[0]) processAssignmentFile(e.dataTransfer.files[0]);
+          }}
+        >
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-bold text-academic-navy uppercase tracking-wider bg-blue-100/70 px-2 py-0.5 rounded-md">
+                1. Required Report
               </span>
-              <button
-                type="button"
-                onClick={() => assignmentInputRef.current?.click()}
-                className="text-xs font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-md hover:bg-slate-200 transition-colors cursor-pointer"
-              >
-                Replace File
-              </button>
+              {assignmentFile && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
             </div>
-            <input
-              ref={assignmentInputRef}
-              type="file"
-              accept=".docx,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
-              onChange={handleAssignmentSelect}
-              className="hidden"
-            />
-          </div>
-        )}
 
-        {/* Inspection Quick Stats */}
-        {inspection && (
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-center">
-              <span className="block text-xs font-medium text-slate-500">Words</span>
-              <span className="text-lg font-bold text-slate-900">{inspection.total_words}</span>
-            </div>
-            <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-center">
-              <span className="block text-xs font-medium text-slate-500">Headings</span>
-              <span className="text-lg font-bold text-slate-900">{inspection.detected_headings.length}</span>
-            </div>
-            <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-center">
-              <span className="block text-xs font-medium text-slate-500">Tables</span>
-              <span className="text-lg font-bold text-slate-900">{inspection.total_tables}</span>
-            </div>
-            <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-center">
-              <span className="block text-xs font-medium text-slate-500">Figures / Images</span>
-              <span className="text-lg font-bold text-slate-900">{inspection.total_images}</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Auxiliary Optional Files */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Cover Template */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-2 text-academic-navy">
-              <FileCheck className="w-5 h-5 text-academic-blue" />
-              <h3 className="text-sm font-semibold text-slate-900">Cover Page Template</h3>
-            </div>
-            <p className="text-xs text-slate-500 leading-relaxed mb-4">
-              Optional official faculty cover sheet (.docx) to merge student details into.
+            <h3 className="text-sm font-bold text-slate-900 mb-1">AI Assignment / Draft</h3>
+            <p className="text-xs text-slate-500 mb-4">
+              Your raw or unformatted assignment draft (.docx, .pdf, .txt, .md).
             </p>
-          </div>
 
-          <div>
-            {templateFile || hasTemplateFile ? (
-              <div className="space-y-1.5">
-                <div className="p-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 truncate min-w-0">
-                    <FileCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="truncate max-w-[150px] font-semibold text-emerald-950">
-                      {templateFile ? templateFile.name : 'Cover_Template.docx'}
-                    </span>
+            {assignmentFile ? (
+              <div className="p-3 rounded-xl bg-white border border-blue-100 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FileText className="w-5 h-5 text-academic-blue shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-slate-900 truncate">{assignmentFile.name}</div>
+                      <div className="text-[10px] text-slate-400">{formatFileSize(assignmentFile.size)}</div>
+                    </div>
                   </div>
                   <button
                     type="button"
-                    onClick={handleRemoveTemplateClick}
-                    className="text-slate-400 hover:text-rose-600 p-1 transition-colors cursor-pointer"
-                    title="Remove template"
+                    onClick={() => {
+                      if (assignmentInputRef.current) assignmentInputRef.current.value = '';
+                      assignmentInputRef.current?.click();
+                    }}
+                    className="text-2xs font-semibold text-academic-blue hover:underline cursor-pointer"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    Replace
                   </button>
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 font-medium px-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Faculty template loaded & active</span>
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                disabled={!jobId}
-                onClick={() => templateInputRef.current?.click()}
-                className="w-full py-2 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition-colors disabled:opacity-50 cursor-pointer"
-              >
-                Upload Template (.docx)
-              </button>
-            )}
-            <input
-              ref={templateInputRef}
-              type="file"
-              accept=".docx"
-              onChange={handleTemplateSelect}
-              className="hidden"
-            />
-          </div>
-        </div>
 
-        {/* Guidelines */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-2 text-academic-navy">
-              <BookOpen className="w-5 h-5 text-academic-blue" />
-              <h3 className="text-sm font-semibold text-slate-900">Module Guidelines</h3>
-            </div>
-            <p className="text-xs text-slate-500 leading-relaxed mb-4">
-              Upload your assignment brief or guidelines (.docx, .pdf) for requirement cross-checking.
-            </p>
-          </div>
-
-          <div>
-            {guidelinesFile || hasGuidelinesFile ? (
-              <div className="space-y-2">
-                <div className="p-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 truncate min-w-0">
-                    <BookOpen className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="truncate max-w-[150px] font-semibold text-emerald-950">
-                      {guidelinesFile ? guidelinesFile.name : 'Module_Guidelines.pdf'}
-                    </span>
+                {inspection && (
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500 font-medium">
+                    <span>{inspection.total_words.toLocaleString()} words</span>
+                    <span>{inspection.detected_headings.length} headings</span>
+                    <span>{inspection.detected_figures?.length || 0} figures</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleRemoveGuidelinesClick}
-                    className="text-slate-400 hover:text-rose-600 p-1 transition-colors cursor-pointer"
-                    title="Remove guidelines"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                {guidelineEvidence.length > 0 && (
-                  <p className="text-[11px] leading-relaxed text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-md p-2">
-                    Applied to formatting: {guidelineEvidence.join(' ')}
-                  </p>
                 )}
               </div>
             ) : (
-              <button
-                type="button"
-                disabled={!jobId}
-                onClick={() => guidelinesInputRef.current?.click()}
-                className="w-full py-2 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition-colors disabled:opacity-50 cursor-pointer"
+              <div
+                onClick={() => assignmentInputRef.current?.click()}
+                className="py-8 flex flex-col items-center justify-center text-center cursor-pointer group"
               >
-                Upload Guidelines (.pdf, .docx)
-              </button>
+                {isUploading ? (
+                  <Loader2 className="w-8 h-8 text-academic-blue animate-spin mb-2" />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-academic-blue flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                    <FileText className="w-6 h-6" />
+                  </div>
+                )}
+                <span className="text-xs font-bold text-slate-800">Drop your assignment draft</span>
+                <span className="text-[10px] text-slate-400 mt-0.5">or click to browse (.docx, .pdf, .txt)</span>
+              </div>
             )}
-            <input
-              ref={guidelinesInputRef}
-              type="file"
-              accept=".docx,.pdf,.txt"
-              onChange={handleGuidelinesSelect}
-              className="hidden"
-            />
           </div>
+
+          <input
+            ref={assignmentInputRef}
+            type="file"
+            accept=".docx,.pdf,.txt,.md"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files?.[0]) processAssignmentFile(e.target.files[0]);
+            }}
+          />
         </div>
 
-        {/* Marking Scheme */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+        {/* ==================================================== */}
+        {/* ZONE 2: ASSIGNMENT CRITERIA / FORMATTING BRIEF */}
+        {/* ==================================================== */}
+        <div
+          className={`flex flex-col justify-between p-5 rounded-2xl border-2 transition-all ${
+            guidelinesFile || hasGuidelinesFile
+              ? 'bg-purple-50/40 border-purple-200 shadow-xs'
+              : 'bg-white border-dashed border-slate-300 hover:border-purple-400/80 hover:bg-slate-50/50'
+          }`}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files?.[0]) processGuidelinesFile(e.dataTransfer.files[0]);
+          }}
+        >
           <div>
-            <div className="flex items-center gap-2 mb-2 text-academic-navy">
-              <FileSpreadsheet className="w-5 h-5 text-academic-blue" />
-              <h3 className="text-sm font-semibold text-slate-900">Marking Rubric</h3>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-bold text-purple-800 uppercase tracking-wider bg-purple-100/70 px-2 py-0.5 rounded-md">
+                2. Assignment Criteria
+              </span>
+              {(guidelinesFile || hasGuidelinesFile) && <CheckCircle2 className="w-4 h-4 text-purple-600" />}
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed mb-4">
-              Attach official grading criteria (.docx, .pdf) to generate an assessment rubric table.
-            </p>
-          </div>
 
-          <div>
-            {rubricFile || hasRubricFile ? (
-              <div className="space-y-1.5">
-                <div className="p-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 truncate min-w-0">
-                    <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="truncate max-w-[150px] font-semibold text-emerald-950">
-                      {rubricFile ? rubricFile.name : 'Marking_Scheme.pdf'}
-                    </span>
+            <h3 className="text-sm font-bold text-slate-900 mb-1">Formatting Brief / Criteria</h3>
+            <p className="text-xs text-slate-500 mb-4">
+              Module rules for fonts, spacing, margins, and referencing (.pdf, .docx).
+            </p>
+
+            {guidelinesFile || hasGuidelinesFile ? (
+              <div className="p-3 rounded-xl bg-white border border-purple-100 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <BookOpen className="w-5 h-5 text-purple-600 shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-slate-900 truncate">
+                        {guidelinesFile ? guidelinesFile.name : 'Criteria Brief Attached'}
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        {guidelinesFile ? formatFileSize(guidelinesFile.size) : 'Ready for review'}
+                      </div>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleRemoveRubricClick}
-                    className="text-slate-400 hover:text-rose-600 p-1 transition-colors cursor-pointer"
-                    title="Remove marking rubric"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => guidelinesInputRef.current?.click()}
+                      className="text-2xs font-semibold text-purple-600 hover:underline cursor-pointer"
+                    >
+                      Replace
+                    </button>
+                    {onRemoveGuidelines && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGuidelinesFile(null);
+                          onRemoveGuidelines();
+                        }}
+                        className="text-slate-400 hover:text-rose-600 cursor-pointer"
+                        title="Remove criteria"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 font-medium px-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>
-                    {rubricCriteriaCount > 0
-                      ? `${rubricCriteriaCount} criteria extracted & active`
-                      : 'Marking scheme validated & attached'}
-                  </span>
+
+                <div className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md font-semibold flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 shrink-0" />
+                  <span>Formatting rules automatically parsed for Step 2 Review</span>
                 </div>
               </div>
             ) : (
-              <button
-                type="button"
-                disabled={!jobId}
-                onClick={() => rubricInputRef.current?.click()}
-                className="w-full py-2 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition-colors disabled:opacity-50 cursor-pointer"
+              <div
+                onClick={() => {
+                  if (!jobId) {
+                    setErrorMessage('Please upload your assignment report first.');
+                    return;
+                  }
+                  guidelinesInputRef.current?.click();
+                }}
+                className="py-8 flex flex-col items-center justify-center text-center cursor-pointer group"
               >
-                Upload Rubric (.docx, .pdf)
-              </button>
+                {isUploadingGuidelines ? (
+                  <Loader2 className="w-8 h-8 text-purple-600 animate-spin mb-2" />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                    <BookOpen className="w-6 h-6" />
+                  </div>
+                )}
+                <span className="text-xs font-bold text-slate-800">Drop assignment criteria brief</span>
+                <span className="text-[10px] text-slate-400 mt-0.5">or click to browse (.pdf, .docx, .txt)</span>
+              </div>
             )}
-            <input
-              ref={rubricInputRef}
-              type="file"
-              accept=".docx,.pdf,.xlsx,.txt"
-              onChange={handleRubricSelect}
-              className="hidden"
-            />
           </div>
+
+          <input
+            ref={guidelinesInputRef}
+            type="file"
+            accept=".pdf,.docx,.txt"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files?.[0]) processGuidelinesFile(e.target.files[0]);
+            }}
+          />
+        </div>
+
+        {/* ==================================================== */}
+        {/* ZONE 3: OFFICIAL COLLEGE COVER PAGE (OPAQUE ASSET) */}
+        {/* ==================================================== */}
+        <div
+          className={`flex flex-col justify-between p-5 rounded-2xl border-2 transition-all ${
+            templateFile || hasTemplateFile
+              ? 'bg-amber-50/40 border-amber-200 shadow-xs'
+              : 'bg-white border-dashed border-slate-300 hover:border-amber-400/80 hover:bg-slate-50/50'
+          }`}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files?.[0]) processTemplateFile(e.dataTransfer.files[0]);
+          }}
+        >
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider bg-amber-100/70 px-2 py-0.5 rounded-md">
+                3. Official Cover Page
+              </span>
+              {(templateFile || hasTemplateFile) && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
+            </div>
+
+            <h3 className="text-sm font-bold text-slate-900 mb-1">College Cover Page</h3>
+            <p className="text-xs text-slate-500 mb-4">
+              Your official institution cover (.docx or .pdf). Preserved 100% UNCHANGED.
+            </p>
+
+            {templateFile || hasTemplateFile ? (
+              <div className="p-3 rounded-xl bg-white border border-amber-100 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FileCheck className="w-5 h-5 text-amber-600 shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-slate-900 truncate">
+                        {templateFile ? templateFile.name : 'Official Cover Attached'}
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        {templateFile ? formatFileSize(templateFile.size) : 'Protected asset'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => templateInputRef.current?.click()}
+                      className="text-2xs font-semibold text-amber-600 hover:underline cursor-pointer"
+                    >
+                      Replace
+                    </button>
+                    {onRemoveTemplate && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTemplateFile(null);
+                          setCoverPreviewUrl(null);
+                          onRemoveTemplate();
+                        }}
+                        className="text-slate-400 hover:text-rose-600 cursor-pointer"
+                        title="Remove cover"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Cover Thumbnail Preview */}
+                {coverPreviewUrl && (
+                  <div className="relative mt-2 rounded-lg border border-slate-200 overflow-hidden bg-slate-100 max-h-32 flex items-center justify-center">
+                    <img
+                      src={coverPreviewUrl}
+                      alt="Cover Preview"
+                      className="max-h-32 object-contain shadow-2xs"
+                      onError={() => setCoverPreviewUrl(null)}
+                    />
+                    <div className="absolute bottom-1 right-1 bg-slate-900/80 text-white text-[9px] px-1.5 py-0.5 rounded font-mono">
+                      Page 1 Preview
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-1 rounded-md font-semibold flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-emerald-600 shrink-0" />
+                  <span>Package-level preservation active (0% font/layout bleed)</span>
+                </div>
+              </div>
+            ) : (
+              <div
+                onClick={() => {
+                  if (!jobId) {
+                    setErrorMessage('Please upload your assignment report first.');
+                    return;
+                  }
+                  templateInputRef.current?.click();
+                }}
+                className="py-8 flex flex-col items-center justify-center text-center cursor-pointer group"
+              >
+                {isUploadingCover ? (
+                  <Loader2 className="w-8 h-8 text-amber-600 animate-spin mb-2" />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                    <FileCheck className="w-6 h-6" />
+                  </div>
+                )}
+                <span className="text-xs font-bold text-slate-800">Drop official cover page</span>
+                <span className="text-[10px] text-slate-400 mt-0.5">Word (.docx) or PDF (.pdf)</span>
+              </div>
+            )}
+          </div>
+
+          <input
+            ref={templateInputRef}
+            type="file"
+            accept=".docx,.pdf"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files?.[0]) processTemplateFile(e.target.files[0]);
+            }}
+          />
         </div>
       </div>
 
-      {/* Navigation Next */}
-      <div className="flex justify-end pt-4">
+      {/* ZONE 4 (OPTIONAL): MARKING SCHEME */}
+      <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+            <FileSpreadsheet className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h4 className="text-xs font-bold text-slate-900">Optional: Marking Scheme / Rubric</h4>
+              <span className="text-[9px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                Appended Unchanged
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 truncate">
+              {rubricFile || hasRubricFile
+                ? `Attached: ${rubricFile ? rubricFile.name : 'Marking Scheme'}`
+                : 'Upload grading criteria table (.docx, .pdf, .xlsx) to append at the end of the document.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+          {rubricFile || hasRubricFile ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-teal-700 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Attached</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setRubricFile(null);
+                  onRemoveRubric?.();
+                }}
+                className="text-xs text-rose-500 hover:text-rose-700 font-semibold cursor-pointer"
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (!jobId) {
+                  setErrorMessage('Please upload your assignment report first.');
+                  return;
+                }
+                rubricInputRef.current?.click();
+              }}
+              disabled={isUploadingRubric}
+              className="px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
+            >
+              {isUploadingRubric ? 'Uploading...' : 'Attach Marking Scheme'}
+            </button>
+          )}
+        </div>
+
+        <input
+          ref={rubricInputRef}
+          type="file"
+          accept=".pdf,.docx,.xlsx,.txt"
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files?.[0]) processRubricFile(e.target.files[0]);
+          }}
+        />
+      </div>
+
+      {/* Bottom Action Footer */}
+      <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+        <div className="text-xs text-slate-500">
+          {assignmentFile ? (
+            <span className="text-emerald-700 font-semibold flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>Report ready. Proceed to review extracted criteria.</span>
+            </span>
+          ) : (
+            <span>Upload your assignment report to get started.</span>
+          )}
+        </div>
+
         <button
           type="button"
-          disabled={!assignmentFile || isUploading}
           onClick={onNext}
-          className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-academic-navy hover:bg-academic-indigo rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          disabled={!assignmentFile || !jobId || isUploading}
+          className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs shadow-xs transition-all cursor-pointer ${
+            assignmentFile && jobId && !isUploading
+              ? 'bg-academic-navy hover:bg-slate-900 text-white shadow-md'
+              : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+          }`}
         >
-          <span>Continue to Requirements</span>
+          <span>Review Criteria (Step 2)</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>

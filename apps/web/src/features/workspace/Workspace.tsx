@@ -1,20 +1,18 @@
 import React, { useState } from 'react';
-import { BookOpen, Eye } from 'lucide-react';
 import { ProgressSteps } from '../../components/layout/ProgressSteps';
 import { UploadStep } from './steps/UploadStep';
-import { CollegeRulesStep } from './steps/CollegeRulesStep';
-import { CoverPageStep } from './steps/CoverPageStep';
-import { FrontMatterStep } from './steps/FrontMatterStep';
-import { RequirementsStep } from './steps/RequirementsStep';
-import { ReviewComplianceStep } from './steps/ReviewComplianceStep';
+import { ReviewStep } from './steps/ReviewStep';
+import { GenerateStep } from './steps/GenerateStep';
 import { DownloadStep } from './steps/DownloadStep';
 import { DocumentPreviewModal } from '../../components/preview/DocumentPreviewModal';
 import {
   FormattingSettings,
   InspectionResult,
   ComplianceReport,
+  GuidelineAnalysis,
+  MarkingCriterion,
+  JobStatusResponse,
 } from '../../types';
-import { api } from '../../lib/api';
 import { ScrollReveal } from '../../components/ui/ScrollReveal';
 
 interface WorkspaceProps {
@@ -33,7 +31,7 @@ interface WorkspaceProps {
 export const Workspace: React.FC<WorkspaceProps> = ({
   settings,
   onUpdateSettings,
-  onOpenProfiles,
+  onOpenProfiles: _onOpenProfiles,
   initialFile,
   activeJobId,
   onJobCreated,
@@ -59,7 +57,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     }
   }, [initialFile]);
 
-  // Auxiliary files lifted state to preserve uploads across step navigation
+  // Auxiliary files lifted state
   const [templateFile, setTemplateFile] = useState<File | null>(null);
   const [guidelinesFile, setGuidelinesFile] = useState<File | null>(null);
   const [rubricFile, setRubricFile] = useState<File | null>(null);
@@ -86,7 +84,6 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     setInspection(inspectRes);
     onJobCreated?.(id, file.name);
 
-    // If inspection detected headings or cover markers, update default title
     const updatedSettings: FormattingSettings = { ...settings };
     if (!updatedSettings.cover_page.assignment_title && inspectRes.detected_headings.length > 0) {
       updatedSettings.cover_page.assignment_title = inspectRes.detected_headings[0].text;
@@ -94,20 +91,56 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     onUpdateSettings(updatedSettings);
   };
 
-  const canNavigateTo = (stepId: number): boolean => {
-    if (stepId === 1) return true;
-    if (!jobId || !assignmentFile) return false;
-    if (stepId === 7) return !!compliance;
-    return true;
+  const handleCoverTemplateUploaded = (file: File) => {
+    setTemplateFile(file);
+    setHasTemplateFile(true);
+    onUpdateSettings({
+      ...settings,
+      cover_page: {
+        ...settings.cover_page,
+        mode: 'template',
+        enabled: true,
+      },
+    });
   };
 
-  const handleFormattingCompleted = (comp: ComplianceReport, hasPdf = false) => {
-    setCompliance(comp);
-    setHasPdfVersion(hasPdf);
-    if (jobId) {
-      onFormattingCompleted?.(jobId, 2);
+  const handleGuidelinesUploaded = (file: File, analysis: GuidelineAnalysis) => {
+    setGuidelinesFile(file);
+    setHasGuidelinesFile(true);
+    if (analysis.evidence) {
+      setGuidelineEvidence(analysis.evidence);
     }
-    setCurrentStep(7); // Move to Download
+
+    // Automatically apply high-confidence criteria rules to settings
+    if (analysis.suggestions) {
+      const merged: FormattingSettings = { ...settings };
+      const s = analysis.suggestions;
+      if (s.paper_size) merged.paper_size = s.paper_size;
+      if (s.body) {
+        merged.body = { ...merged.body, ...s.body };
+      }
+      if (s.heading1) {
+        merged.heading1 = { ...merged.heading1, ...s.heading1 };
+      }
+      if (s.margins) {
+        merged.margins = { ...merged.margins, ...s.margins };
+      }
+      onUpdateSettings(merged);
+    }
+  };
+
+  const handleMarkingSchemeUploaded = (file: File, criteria: MarkingCriterion[]) => {
+    setRubricFile(file);
+    setHasRubricFile(true);
+    setRubricCriteriaCount(criteria.length);
+    onUpdateSettings({
+      ...settings,
+      marking_scheme: {
+        ...settings.marking_scheme,
+        enabled: true,
+        criteria,
+      },
+    });
   };
 
   const handleRemoveTemplate = () => {
@@ -142,69 +175,50 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     });
   };
 
+  const canNavigateTo = (stepId: number): boolean => {
+    if (stepId === 1) return true;
+    if (!jobId || !assignmentFile) return false;
+    if (stepId === 2) return true;
+    if (stepId === 3) return true;
+    if (stepId === 4) return !!compliance;
+    return false;
+  };
+
+  const handleGenerationComplete = (res: JobStatusResponse) => {
+    setCompliance(res.compliance || null);
+    setHasPdfVersion(true);
+    if (jobId) {
+      onFormattingCompleted?.(jobId, res.current_version_id || 2);
+    }
+    setCurrentStep(4);
+  };
+
   const handleReset = () => {
+    setCurrentStep(1);
     setJobId(null);
     setAssignmentFile(null);
     setTemplateFile(null);
     setGuidelinesFile(null);
     setRubricFile(null);
-    setGuidelineEvidence([]);
-    setRubricCriteriaCount(0);
-    setHasTemplateFile(false);
-    setHasGuidelinesFile(false);
-    setHasRubricFile(false);
     setInspection(null);
     setCompliance(null);
-    setCurrentStep(1);
+    setHasPdfVersion(false);
   };
 
   return (
-    <div className="min-h-[calc(100vh-16rem)] flex flex-col">
-      {/* Workspace Sub-header Bar */}
-      <ScrollReveal delay={0}>
-        <div className="bg-slate-100/80 border-b border-slate-200 py-2 sm:py-2.5 px-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-600">
-          <div className="flex items-center gap-2 min-w-0">
-            <img src="/logo.jpg" alt="Logo" className="w-4 h-4 rounded object-contain shrink-0" />
-            <span className="font-semibold text-slate-800 whitespace-nowrap">Formatting Workspace:</span>
-            <span className="truncate text-slate-600 font-medium max-w-[170px] sm:max-w-xs md:max-w-md">
-              {assignmentFile ? assignmentFile.name : 'Upload assignment to begin'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-            <button
-              type="button"
-              onClick={() => setIsPreviewOpen(true)}
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-md bg-white border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer text-xs"
-            >
-              <Eye className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Preview</span>
-            </button>
-            <button
-              type="button"
-              onClick={onOpenProfiles}
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-md bg-white border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer text-xs"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-academic-blue" />
-              <span className="hidden sm:inline">Load College Profile</span>
-              <span className="sm:hidden">College Profiles</span>
-            </button>
-          </div>
-        </div>
-      </ScrollReveal>
+    <div className="flex-1 flex flex-col bg-slate-50 min-h-0">
+      {/* 4-Step Progress Navigation Bar */}
+      <ProgressSteps
+        currentStep={currentStep}
+        onStepClick={(step) => {
+          if (canNavigateTo(step)) setCurrentStep(step);
+        }}
+        canNavigateTo={canNavigateTo}
+      />
 
-      {/* Progress Steps Bar */}
-      <ScrollReveal delay={100}>
-        <ProgressSteps
-          currentStep={currentStep}
-          onStepClick={(step) => setCurrentStep(step)}
-          canNavigateTo={canNavigateTo}
-        />
-      </ScrollReveal>
-
-      {/* Main Workspace Stage */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <ScrollReveal delay={150} key={currentStep}>
-          {/* Step 1: Upload */}
+      {/* Main Step Body */}
+      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <ScrollReveal key={currentStep}>
           {currentStep === 1 && (
             <UploadStep
               jobId={jobId}
@@ -214,147 +228,84 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               guidelinesFile={guidelinesFile}
               rubricFile={rubricFile}
               guidelineEvidence={guidelineEvidence}
-              rubricCriteriaCount={rubricCriteriaCount || settings.marking_scheme?.criteria?.length || 0}
-              hasTemplateFile={hasTemplateFile || !!templateFile}
-              hasGuidelinesFile={hasGuidelinesFile || !!guidelinesFile}
-              hasRubricFile={hasRubricFile || !!rubricFile || (settings.marking_scheme?.criteria?.length || 0) > 0}
+              rubricCriteriaCount={rubricCriteriaCount}
+              hasTemplateFile={hasTemplateFile}
+              hasGuidelinesFile={hasGuidelinesFile}
+              hasRubricFile={hasRubricFile}
               onAssignmentUploaded={handleAssignmentUploaded}
-              onCoverTemplateUploaded={(file) => {
-                setTemplateFile(file);
-                setHasTemplateFile(true);
-                onUpdateSettings({
-                  ...settings,
-                  cover_page: { ...settings.cover_page, mode: 'template', enabled: true },
-                });
-              }}
-              onGuidelinesUploaded={(file, analysis) => {
-                setGuidelinesFile(file);
-                setHasGuidelinesFile(true);
-                const ev = analysis?.evidence || [];
-                setGuidelineEvidence(ev);
-                if (!analysis?.has_suggestions) return;
-                const suggested = analysis.suggestions;
-                onUpdateSettings({
-                  ...settings,
-                  ...(suggested.paper_size ? { paper_size: suggested.paper_size } : {}),
-                  ...(suggested.margins ? { margins: { ...settings.margins, ...suggested.margins } } : {}),
-                  ...(suggested.body ? { body: { ...settings.body, ...suggested.body } } : {}),
-                  ...(suggested.required_sections ? { required_sections: suggested.required_sections } : {}),
-                });
-              }}
-              onMarkingSchemeUploaded={(file, criteria) => {
-                setRubricFile(file);
-                setHasRubricFile(true);
-                setRubricCriteriaCount(criteria.length);
-                onUpdateSettings({
-                  ...settings,
-                  marking_scheme: {
-                    ...settings.marking_scheme,
-                    enabled: criteria.length > 0,
-                    criteria,
-                  },
-                });
-              }}
+              onCoverTemplateUploaded={handleCoverTemplateUploaded}
+              onGuidelinesUploaded={handleGuidelinesUploaded}
+              onMarkingSchemeUploaded={handleMarkingSchemeUploaded}
               onRemoveTemplate={handleRemoveTemplate}
               onRemoveGuidelines={handleRemoveGuidelines}
               onRemoveRubric={handleRemoveRubric}
               onNext={() => setCurrentStep(2)}
-            />
-          )}
-
-          {/* Step 2: College Rules & Profile */}
-          {currentStep === 2 && (
-            <CollegeRulesStep
-              settings={settings}
-              onChange={onUpdateSettings}
-              onNext={() => setCurrentStep(3)}
-              onBack={() => setCurrentStep(1)}
-              onOpenProfilesModal={onOpenProfiles}
-            />
-          )}
-
-          {/* Step 3: Cover Page Details */}
-          {currentStep === 3 && (
-            <CoverPageStep
-              settings={settings}
-              hasTemplateFile={hasTemplateFile || !!templateFile}
-              templateFile={templateFile}
-              onUploadTemplate={async (file) => {
-                if (jobId) {
-                  await api.uploadCoverTemplate(jobId, file);
+              onDirectPPT={(_file) => {
+                if (onCreatePowerPoint && jobId) {
+                  onCreatePowerPoint(jobId);
                 }
-                setTemplateFile(file);
-                setHasTemplateFile(true);
-                onUpdateSettings({
-                  ...settings,
-                  cover_page: { ...settings.cover_page, mode: 'template', enabled: true },
-                });
               }}
-              onChange={(coverData) => onUpdateSettings({ ...settings, cover_page: coverData })}
-              onNext={() => setCurrentStep(4)}
+            />
+          )}
+
+          {currentStep === 2 && (
+            <ReviewStep
+              settings={settings}
+              onUpdateSettings={onUpdateSettings}
+              guidelineEvidence={guidelineEvidence}
+              hasCoverTemplate={hasTemplateFile}
+              hasRubric={hasRubricFile}
+              coverFilename={templateFile?.name}
+              onBack={() => setCurrentStep(1)}
+              onNext={() => setCurrentStep(3)}
+            />
+          )}
+
+          {currentStep === 3 && jobId && (
+            <GenerateStep
+              jobId={jobId}
+              settings={settings}
+              hasCoverTemplate={hasTemplateFile}
+              hasRubric={hasRubricFile}
+              onGenerationComplete={handleGenerationComplete}
               onBack={() => setCurrentStep(2)}
             />
           )}
 
-          {/* Step 4: Required Front Matter */}
-          {currentStep === 4 && (
-            <FrontMatterStep
-              settings={settings}
-              inspection={inspection}
-              onChange={onUpdateSettings}
-              onNext={() => setCurrentStep(5)}
-              onBack={() => setCurrentStep(3)}
-            />
-          )}
-
-          {/* Step 5: Formatting & Page Numbering */}
-          {currentStep === 5 && (
-            <RequirementsStep
-              settings={settings}
-              onChange={onUpdateSettings}
-              onNext={() => setCurrentStep(6)}
-              onBack={() => setCurrentStep(4)}
-            />
-          )}
-
-          {/* Step 6: Process & Validate */}
-          {currentStep === 6 && jobId && (
-            <ReviewComplianceStep
-              jobId={jobId}
-              settings={settings}
-              inspection={inspection}
-              compliance={compliance}
-              onFormattingCompleted={handleFormattingCompleted}
-              onBack={() => setCurrentStep(5)}
-            />
-          )}
-
-          {/* Step 7: Download Formatted Document */}
-          {currentStep === 7 && jobId && (
+          {currentStep === 4 && jobId && (
             <DownloadStep
               jobId={jobId}
-              originalFilename={assignmentFile?.name || 'assignment.docx'}
+              originalFilename={assignmentFile?.name || 'Assignment.docx'}
               hasPdfVersion={hasPdfVersion}
               settings={settings}
               compliance={compliance}
               inspection={inspection}
+              hasCoverTemplate={hasTemplateFile}
+              hasRubric={hasRubricFile}
               onModifySettings={() => setCurrentStep(2)}
               onReset={handleReset}
               onOpenPreview={() => setIsPreviewOpen(true)}
-              onCheckWithDoctor={() => onCheckWithDoctor?.(jobId, 2)}
-              onCreatePowerPoint={() => onCreatePowerPoint?.(jobId, 2)}
+              onCheckWithDoctor={
+                onCheckWithDoctor && jobId ? () => onCheckWithDoctor(jobId) : undefined
+              }
+              onCreatePowerPoint={
+                onCreatePowerPoint && jobId ? () => onCreatePowerPoint(jobId) : undefined
+              }
             />
           )}
         </ScrollReveal>
-      </main>
+      </div>
 
-      <DocumentPreviewModal
-        isOpen={isPreviewOpen}
-        onClose={() => setIsPreviewOpen(false)}
-        settings={settings}
-        inspection={inspection}
-        filename={assignmentFile?.name}
-      />
+      {/* Interactive Document Preview Modal */}
+      {jobId && (
+        <DocumentPreviewModal
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+          settings={settings}
+          inspection={inspection}
+          filename={assignmentFile?.name || 'Assignment.docx'}
+        />
+      )}
     </div>
   );
 };

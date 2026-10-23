@@ -162,19 +162,58 @@ async def upload_cover_template(job_id: str, file: UploadFile = File(...)):
 
     raw_filename = file.filename or "cover.docx"
     safe_filename = sanitize_filename(raw_filename)
-    if not safe_filename.lower().endswith(".docx"):
-        raise FileValidationError("Cover page template must be a Microsoft Word (.docx) document.")
+    ext = Path(safe_filename).suffix.lower()
+    if ext not in [".docx", ".pdf"]:
+        raise FileValidationError("Cover page template must be a Microsoft Word (.docx) or PDF (.pdf) document.")
 
     content = await file.read()
-    validate_docx_bytes(content, safe_filename)
+    if ext == ".docx":
+        validate_docx_bytes(content, safe_filename)
+        cover_path = job_dir / "cover_template.docx"
+    else:
+        validate_pdf_bytes(content, safe_filename)
+        cover_path = job_dir / "cover_template.pdf"
 
-    cover_path = job_dir / "cover_template.docx"
     with open(cover_path, "wb") as f:
         f.write(content)
 
     record = job_manager.get_job(job_id)
     record.has_cover_template = True
-    return {"message": "Cover template uploaded successfully", "job_id": job_id}
+
+    # Generate thumbnail preview
+    from src.modules.documents.composer import generate_cover_thumbnail
+    thumb_path = job_dir / "cover_thumbnail.png"
+    has_thumb = generate_cover_thumbnail(cover_path, thumb_path)
+
+    return {
+        "message": "Cover template uploaded successfully",
+        "job_id": job_id,
+        "format": ext.lstrip("."),
+        "has_thumbnail": has_thumb,
+        "preview_url": f"/api/jobs/{job_id}/cover-preview" if has_thumb else None,
+    }
+
+@app.get("/api/jobs/{job_id}/cover-preview")
+async def get_cover_preview(job_id: str):
+    validate_uuid(job_id)
+    job_dir = get_job_directory(job_id, create=False)
+    if not job_dir.exists():
+        raise JobNotFoundError(job_id)
+
+    thumb_path = job_dir / "cover_thumbnail.png"
+    if not thumb_path.exists():
+        # Try generating on the fly
+        cover_docx = job_dir / "cover_template.docx"
+        cover_pdf = job_dir / "cover_template.pdf"
+        target_cov = cover_docx if cover_docx.exists() else (cover_pdf if cover_pdf.exists() else None)
+        if target_cov:
+            from src.modules.documents.composer import generate_cover_thumbnail
+            generate_cover_thumbnail(target_cov, thumb_path)
+
+    if not thumb_path.exists():
+        raise HTTPException(status_code=404, detail="No cover preview thumbnail available.")
+
+    return FileResponse(path=str(thumb_path), media_type="image/png", filename="cover_preview.png")
 
 @app.post("/api/jobs/{job_id}/upload-guidelines")
 @app.post("/api/upload/guidelines/{job_id}")

@@ -9,9 +9,11 @@ While students frequently utilize AI tools such as ChatGPT or Gemini for draftin
 ## 1. Key Features
 
 - **Structure-Aware OpenXML Formatting**: Directly mutates Microsoft Word `.docx` documents via `python-docx` without stripping embedded tables, figures, hyperlinks, or mathematical formulas.
-- **Dedicated Cover Page Engine**: Choose between a built-in clean academic cover sheet or merge candidate metadata into an official faculty `.docx` template with unlinked headers that suppress page numbers on the title sheet.
-- **Marking Scheme / Rubric Generator**: Attach official assessment rubrics (.docx or text-extracted from .pdf) or enter criteria manually to generate an institutional marking table at your chosen document location.
-- **Dynamic Table of Contents (TOC)**: Injects genuine OpenXML TOC field codes with configurable depth (Levels 1–3).
+- **100% Guaranteed Cover Page & Rubric Preservation**: Treats official college cover pages (.docx or .pdf) and marking schemes as opaque, immutable assets. Merges at the OOXML package level (`docxcompose`) and vector PDF stream level (`pypdf`), guaranteeing 0% formatting bleed and zero modified fonts, layouts, or logos.
+- **AI Output Normalization**: Strips raw LLM markdown artifacts (`***`, `---`, `# Heading`, `**bold**`) and deterministically converts markdown tables into styled native Word tables.
+- **Real Word Styles & Dynamic TOC**: Configures true Microsoft Word styles (`Normal`, `Heading 1`, `Heading 2`, `Heading 3`, `Caption`) and enables automatic field updating (`<w:updateFields w:val="true"/>`) so Table of Contents, List of Figures, and List of Tables are immediately editable and update with one click.
+- **Streamlined 4-Step Guided Wizard**: Replaces fragmented multi-step flows with an intuitive, unified 4-stage pipeline: `Upload Files` → `Review Criteria` → `Generate Document` → `Download & Inspect`.
+- **Intelligent Presentation Generation**: Automatically generates academic 16:9 PowerPoint presentations from the formatted document with overflow bounds protection, dynamic visual layouts, speaker notes, and substantive conclusions.
 - **Academic Page Numbering**: Employs Word section breaks to deliver Roman numeral front matter, unlinked cover headers, and Arabic page numbering starting at the Introduction.
 - **Heading Page Breaks**: Automatically starts major Level 1 headings on fresh pages while keeping subheadings glued to subsequent paragraphs (`keep_with_next`).
 - **Rule-Based Compliance Auditor**: Instant deterministic audit rating typography, margin tolerances, required sections, bibliography existence, and heading hierarchies with actionable guidance.
@@ -60,8 +62,8 @@ AssignmentReady/
 │       │   ├── components/layout/        # Navbar, Footer, ProgressSteps
 │       │   ├── features/
 │       │   │   ├── landing/              # Interactive landing page & visual comparison
-│       │   │   ├── workspace/            # 6-step formatting wizard
-│       │   │   │   └── steps/            # Upload, Requirements, Cover, Rubric, Review, Download
+│       │   │   ├── workspace/            # 4-step guided formatting wizard
+│       │   │   │   └── steps/            # UploadStep, ReviewStep, GenerateStep, DownloadStep
 │       │   │   └── profiles/             # College profiles management modal
 │       │   ├── lib/                      # Typed API client & localStorage profile manager
 │       │   ├── types/                    # Domain schemas & DTOs

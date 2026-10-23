@@ -301,8 +301,13 @@ class JobManager:
         v_out_path = versions_dir / f"v{next_v_id}_{base_stem}_Formatted.docx"
         output_file = job_dir / "formatted.docx"
 
-        cover_tpl = job_dir / "cover_template.docx"
-        tpl_path = cover_tpl if cover_tpl.exists() else None
+        cover_docx = job_dir / "cover_template.docx"
+        cover_pdf = job_dir / "cover_template.pdf"
+        tpl_path = cover_docx if cover_docx.exists() else (cover_pdf if cover_pdf.exists() else None)
+
+        rubric_docx = job_dir / "rubric.docx"
+        rubric_pdf = job_dir / "rubric.pdf"
+        rubric_path = rubric_docx if rubric_docx.exists() else (rubric_pdf if rubric_pdf.exists() else None)
 
         # Run formatting to output version file
         apply_formatting(
@@ -310,6 +315,7 @@ class JobManager:
             output_file=v_out_path,
             settings=settings,
             cover_template_path=tpl_path,
+            marking_scheme_path=rubric_path,
         )
 
         # Validate that the formatted output opens cleanly
@@ -336,9 +342,8 @@ class JobManager:
         record.settings = settings
         record.is_formatted = True
 
-        # Optional LibreOffice PDF conversion
-        if config.libreoffice_path:
-            self._convert_to_pdf_libreoffice(output_file, job_dir)
+        # High-Fidelity PDF conversion & composition
+        self._convert_to_pdf(output_file, job_dir, job_id=job_id)
 
         return self.get_status_response(job_id)
 
@@ -394,20 +399,62 @@ class JobManager:
 
         return v.to_info(job_id)
 
-    def _convert_to_pdf_libreoffice(self, docx_path: Path, output_dir: Path) -> None:
-        try:
-            cmd = [
-                config.libreoffice_path,
-                "--headless",
-                "--convert-to",
-                "pdf",
-                str(docx_path),
-                "--outdir",
-                str(output_dir),
-            ]
-            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=45, check=True)
-        except Exception:
-            pass  # Non-fatal if conversion fails or times out
+    def _convert_to_pdf(self, docx_path: Path, output_dir: Path, job_id: Optional[str] = None) -> Optional[Path]:
+        output_pdf = output_dir / f"{docx_path.stem}.pdf"
+        converted = False
+
+        # 1. Try LibreOffice headless
+        if config.libreoffice_path:
+            try:
+                cmd = [
+                    config.libreoffice_path,
+                    "--headless",
+                    "--convert-to",
+                    "pdf",
+                    str(docx_path),
+                    "--outdir",
+                    str(output_dir),
+                ]
+                subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=45, check=True)
+                converted = output_pdf.exists()
+            except Exception:
+                pass
+
+        # 2. Try Word COM (docx2pdf) if on Windows and LibreOffice was not available
+        if not converted:
+            try:
+                import pythoncom
+                pythoncom.CoInitialize()
+                try:
+                    import docx2pdf
+                    docx2pdf.convert(str(docx_path), str(output_pdf))
+                    converted = output_pdf.exists()
+                finally:
+                    pythoncom.CoUninitialize()
+            except Exception:
+                pass
+
+        # 3. If PDF was converted and job had a native vector PDF cover or PDF rubric, merge at PDF level
+        if converted and job_id:
+            try:
+                job_dir = get_job_directory(job_id)
+                cover_pdf = job_dir / "cover_template.pdf"
+                rubric_pdf = job_dir / "rubric.pdf"
+                if cover_pdf.exists() or rubric_pdf.exists():
+                    from src.modules.documents.composer import compose_submission_pdf
+                    temp_pdf = output_dir / f"{docx_path.stem}_raw.pdf"
+                    shutil.move(output_pdf, temp_pdf)
+                    compose_submission_pdf(
+                        cover_pdf_path=cover_pdf if cover_pdf.exists() else None,
+                        body_pdf_path=temp_pdf,
+                        output_pdf_path=output_pdf,
+                        marking_scheme_pdf_path=rubric_pdf if rubric_pdf.exists() else None,
+                    )
+                    temp_pdf.unlink(missing_ok=True)
+            except Exception:
+                pass
+
+        return output_pdf if output_pdf.exists() else None
 
     def delete_job(self, job_id: str) -> None:
         job_dir = get_job_directory(job_id)

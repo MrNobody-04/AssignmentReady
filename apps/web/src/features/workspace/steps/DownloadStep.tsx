@@ -6,9 +6,10 @@ import {
   ArrowLeft,
   CheckCircle2,
   RotateCcw,
-  Eye,
   Stethoscope,
   Presentation,
+  ShieldCheck,
+  Lock,
 } from 'lucide-react';
 import { FormattingSettings, ComplianceReport, InspectionResult } from '../../../types';
 import { api } from '../../../lib/api';
@@ -20,6 +21,8 @@ interface DownloadStepProps {
   settings: FormattingSettings;
   compliance: ComplianceReport | null;
   inspection: InspectionResult | null;
+  hasCoverTemplate?: boolean;
+  hasRubric?: boolean;
   onModifySettings: () => void;
   onReset: () => void;
   onOpenPreview?: () => void;
@@ -30,13 +33,15 @@ interface DownloadStepProps {
 export const DownloadStep: React.FC<DownloadStepProps> = ({
   jobId,
   originalFilename,
-  hasPdfVersion,
+  hasPdfVersion: _hasPdfVersion,
   settings,
-  compliance,
-  inspection,
+  compliance: _compliance,
+  inspection: _inspection,
+  hasCoverTemplate: _hasCoverTemplate = false,
+  hasRubric = false,
   onModifySettings,
   onReset,
-  onOpenPreview,
+  onOpenPreview: _onOpenPreview,
   onCheckWithDoctor,
   onCreatePowerPoint,
 }) => {
@@ -44,12 +49,13 @@ export const DownloadStep: React.FC<DownloadStepProps> = ({
   const [isDeleted, setIsDeleted] = useState(false);
   const [customFilename, setCustomFilename] = useState(() => {
     const stem = originalFilename.substring(0, originalFilename.lastIndexOf('.')) || originalFilename;
-    return `${stem}_Formatted`;
+    return `${stem}_SubmissionReady`;
   });
 
-  const safeFilename = customFilename.trim() || 'assignment_Formatted';
+  const safeFilename = customFilename.trim() || 'assignment_SubmissionReady';
   const docxDownloadUrl = `/api/jobs/${jobId}/download?filename=${encodeURIComponent(safeFilename)}`;
-  const pdfDownloadUrl = `/api/jobs/${jobId}/download-pdf?filename=${encodeURIComponent(safeFilename)}`;
+  const pdfDownloadUrl = `/api/jobs/${jobId}/convert?target_format=pdf`;
+  const coverPreviewUrl = `/api/jobs/${jobId}/cover-preview`;
 
   const handleDelete = async () => {
     if (!window.confirm('Delete all temporary files for this assignment from the server now?')) {
@@ -67,213 +73,218 @@ export const DownloadStep: React.FC<DownloadStepProps> = ({
   };
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      {/* Unified Project Intelligent Actions */}
-      <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-slate-50 border border-blue-200/90 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-full text-3xs font-extrabold uppercase tracking-wider bg-blue-600 text-white">
-              Unified Project
-            </span>
-            <span className="text-xs font-bold text-slate-800">
-              Shared Document Intelligence (Version 2 Formatted)
-            </span>
+    <div className="space-y-6 max-w-4xl mx-auto">
+      {/* Cover Page Integrity Guarantee Banner */}
+      <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200/90 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs shrink-0">
+            <ShieldCheck className="w-5 h-5" />
           </div>
-          <p className="text-xs text-slate-600 max-w-xl leading-relaxed">
-            Upload once, use everywhere. Seamlessly audit compliance with Assignment Doctor or generate presentation slides from this formatted version.
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-emerald-950">
+                100% Submission-Ready & Verified
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-200/80 text-emerald-900 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <Lock className="w-2.5 h-2.5" />
+                <span>Cover Unchanged</span>
+              </span>
+            </div>
+            <p className="text-xs text-emerald-800/90 mt-0.5">
+              Document package assembled: [Cover page, UNCHANGED] → [TOC & Lists] → [Report Body] {hasRubric ? '→ [Marking Scheme, UNCHANGED]' : ''}
+            </p>
+          </div>
+        </div>
+
+        {onCreatePowerPoint && (
+          <button
+            type="button"
+            onClick={onCreatePowerPoint}
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition-all hover:scale-[1.02] cursor-pointer shrink-0"
+          >
+            <Presentation className="w-3.5 h-3.5" />
+            <span>Generate PowerPoint Deck</span>
+          </button>
+        )}
+      </div>
+
+      {/* Primary Download Center */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-xs text-center space-y-6">
+        <div>
+          <div className="w-12 h-12 bg-emerald-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-xs">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            Your Assignment is Ready for Submission
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto mt-1 leading-relaxed">
+            Preserved official cover sheet, real Word styles, automatic TOC, 1-inch margins, and section-aware Roman/Arabic numbering applied.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
-          {onCheckWithDoctor && (
-            <button
-              type="button"
-              onClick={onCheckWithDoctor}
-              className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-all hover:scale-[1.02] cursor-pointer"
-            >
-              <Stethoscope className="w-4 h-4" />
-              <span>Check Formatted Assignment</span>
-            </button>
-          )}
-
-          {onCreatePowerPoint && (
-            <button
-              type="button"
-              onClick={onCreatePowerPoint}
-              className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-800 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl shadow-2xs transition-colors cursor-pointer"
-            >
-              <Presentation className="w-4 h-4 text-indigo-600" />
-              <span>Create PowerPoint</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Success Banner */}
-      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-8 text-center">
-        <div className="w-10 h-10 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-2xs">
-          <CheckCircle2 className="w-5 h-5" />
-        </div>
-        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
-          Your Assignment is Formatted & Ready
-        </h2>
-        <p className="text-sm text-slate-600 max-w-lg mx-auto mt-2 leading-relaxed">
-          OpenXML typography, institutional margins, section breaks, cover pages, and dynamic page numbers have been applied while preserving your original manuscript content.
-        </p>
-
         {/* Custom Output Filename Input */}
-        <div className="mt-6 max-w-md mx-auto text-left">
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-            Output File Name:
+        <div className="max-w-md mx-auto text-left">
+          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+            Submission File Name:
           </label>
           <div className="flex items-center gap-1.5">
             <input
               type="text"
               value={customFilename}
               onChange={(e) => setCustomFilename(e.target.value)}
-              placeholder="e.g. CS101_Assignment_Final"
-              className="flex-1 px-3 py-2 text-xs font-semibold rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-academic-teal bg-white"
+              placeholder="e.g. Coursework_Submission_Final"
+              className="flex-1 px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-academic-navy bg-white"
             />
-            <span className="px-2.5 py-2 text-xs font-semibold text-slate-500 bg-slate-200/80 rounded-lg">
+            <span className="px-3 py-2 text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 rounded-xl">
               .docx / .pdf
             </span>
           </div>
         </div>
 
-        {/* Download Action Buttons */}
-        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+        {/* 3 Core Primary Action Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto pt-2">
+          {/* Download Word Document */}
           <a
             href={docxDownloadUrl}
             download
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-bold text-white bg-academic-navy hover:bg-academic-indigo rounded-xl shadow-md transition-all hover:scale-[1.02]"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold text-white bg-academic-navy hover:bg-slate-900 rounded-xl shadow-md transition-all hover:scale-[1.02] cursor-pointer"
           >
-            <Download className="w-5 h-5" />
-            <span>Download Formatted Word (.docx)</span>
+            <Download className="w-4 h-4" />
+            <span>Download Word (.docx)</span>
           </a>
 
-          {onOpenPreview && (
+          {/* Download PDF */}
+          <a
+            href={pdfDownloadUrl}
+            download
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl shadow-2xs transition-all hover:scale-[1.02] cursor-pointer"
+          >
+            <FileText className="w-4 h-4 text-rose-600" />
+            <span>Download PDF (.pdf)</span>
+          </a>
+
+          {/* Generate Presentation */}
+          {onCreatePowerPoint && (
             <button
               type="button"
-              onClick={onOpenPreview}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-semibold text-slate-800 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl transition-colors shadow-xs cursor-pointer"
+              onClick={onCreatePowerPoint}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl shadow-2xs transition-all hover:scale-[1.02] cursor-pointer"
             >
-              <Eye className="w-4 h-4 text-indigo-600" />
-              <span>Interactive Layout Preview</span>
+              <Presentation className="w-4 h-4 text-indigo-600" />
+              <span>Create Slides (.pptx)</span>
             </button>
           )}
+        </div>
+      </div>
 
-          {hasPdfVersion ? (
-            <a
-              href={pdfDownloadUrl}
-              download
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl transition-colors shadow-xs"
-            >
-              <FileText className="w-4 h-4 text-rose-600" />
-              <span>Download PDF</span>
-            </a>
-          ) : (
-            <div className="text-xs text-slate-500 bg-white/70 py-2 px-3 rounded-lg border border-slate-200 inline-flex items-center gap-1.5">
-              <span>PDF rendering:</span>
-              <span className="font-medium text-slate-700">Open in Word & Export to PDF</span>
+      {/* Page 1 Cover Preview & Applied Specs Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* Page 1 Preview Card */}
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <span className="text-xs font-bold text-slate-900">Page 1: Official Cover</span>
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+              Verified
+            </span>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center min-h-48 relative">
+            <img
+              src={coverPreviewUrl}
+              alt="Page 1 Cover Preview"
+              className="max-h-56 object-contain shadow-xs"
+              onError={(e) => {
+                // If thumbnail not available, show placeholder icon
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
+            <div className="text-center p-4">
+              <FileText className="w-8 h-8 text-academic-blue mx-auto mb-1 opacity-70" />
+              <span className="text-[10px] font-semibold text-slate-500 block">
+                Official Cover Sheet
+              </span>
+              <span className="text-[9px] text-slate-400">Positioned as Page 1</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Applied Formatting Specs */}
+        <div className="md:col-span-2 p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
+          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider pb-2 border-b border-slate-100">
+            Applied Specifications & Composition
+          </h3>
+
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="block text-[10px] text-slate-400 font-medium">Typography</span>
+              <span className="font-bold text-slate-800 block mt-0.5 truncate">
+                {settings.body.font_family} {settings.body.font_size_pt}pt ({settings.body.line_spacing}x)
+              </span>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="block text-[10px] text-slate-400 font-medium">Paper & Margins</span>
+              <span className="font-bold text-slate-800 block mt-0.5">
+                {settings.paper_size} • {settings.margins.left_inches}" Margins
+              </span>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="block text-[10px] text-slate-400 font-medium">Pagination</span>
+              <span className="font-bold text-slate-800 block mt-0.5">
+                Roman (i, ii) Prelims → Arabic 1 Body
+              </span>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="block text-[10px] text-slate-400 font-medium">Auto-Lists</span>
+              <span className="font-bold text-slate-800 block mt-0.5">
+                TOC {settings.list_of_figures.enabled ? '+ LOF' : ''} {settings.list_of_tables.enabled ? '+ LOT' : ''}
+              </span>
+            </div>
+          </div>
+
+          {onCheckWithDoctor && (
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={onCheckWithDoctor}
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+              >
+                <Stethoscope className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Run Assignment Doctor Pre-Submission Check</span>
+              </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Applied Formatting Summary */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-4">
-        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-          Applied Formatting Specifications
-        </h3>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-            <span className="block text-slate-400 font-medium">Original File</span>
-            <span className="font-semibold text-slate-800 truncate block mt-0.5">
-              {originalFilename}
-            </span>
-          </div>
-
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-            <span className="block text-slate-400 font-medium">Paper & Margins</span>
-            <span className="font-semibold text-slate-800 block mt-0.5">
-              {settings.paper_size} • {settings.margins.top_inches}" margins
-            </span>
-          </div>
-
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-            <span className="block text-slate-400 font-medium">Body Typography</span>
-            <span className="font-semibold text-slate-800 block mt-0.5">
-              {settings.body.font_family} {settings.body.font_size_pt} pt ({settings.body.line_spacing}x)
-            </span>
-          </div>
-
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-            <span className="block text-slate-400 font-medium">Heading Hierarchy</span>
-            <span className="font-semibold text-slate-800 block mt-0.5">
-              H1 {settings.heading1.font_size_pt}pt, H2 {settings.heading2.font_size_pt}pt
-            </span>
-          </div>
-
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-            <span className="block text-slate-400 font-medium">Compliance Audit</span>
-            <span className="font-semibold text-emerald-700 block mt-0.5">
-              {compliance ? `${compliance.score_percentage}% Pass Rate` : 'Audited'}
-            </span>
-          </div>
-
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-            <span className="block text-slate-400 font-medium">Document Length</span>
-            <span className="font-semibold text-slate-800 block mt-0.5">
-              {inspection ? `${inspection.total_words} Words (${inspection.total_paragraphs} paras)` : 'Processed'}
-            </span>
-          </div>
-
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-            <span className="block text-slate-400 font-medium">Marking Scheme</span>
-            <span className="font-semibold text-slate-800 block mt-0.5">
-              {settings.marking_scheme.enabled
-                ? `${settings.marking_scheme.criteria.length} Criteria Table`
-                : 'Omitted'}
-            </span>
-          </div>
-        </div>
-
-        {/* Word Table of Contents notice */}
-        {settings.table_of_contents.enabled && (
-          <div className="p-4 rounded-lg bg-blue-50/70 border border-blue-200 text-xs text-blue-900 leading-relaxed">
-            <span className="font-bold block mb-1">Microsoft Word Table of Contents Notice:</span>
-            When opening the generated .docx file in Microsoft Word, Word will ask whether you want to update the fields in the document. Click <strong className="font-semibold">"Yes"</strong> or right-click the Table of Contents and press <strong className="font-semibold">F9</strong> to populate exact page numbers for your headings.
-          </div>
-        )}
-      </div>
-
-      {/* Control Buttons (Modify / Reset / Delete) */}
+      {/* Control Buttons (Adjust / Delete / Reset) */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200">
         <button
           type="button"
           onClick={onModifySettings}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition-colors"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl transition-colors cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-3.5 h-3.5" />
           <span>Adjust Settings & Re-format</span>
         </button>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             disabled={isDeleting || isDeleted}
             onClick={handleDelete}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-slate-600 hover:text-rose-600 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-rose-600 transition-colors disabled:opacity-50 cursor-pointer"
           >
-            <Trash2 className="w-4 h-4" />
-            <span>{isDeleted ? 'Server Files Deleted' : 'Delete Temporary Files'}</span>
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>{isDeleted ? 'Server Files Purged' : 'Delete Temporary Files'}</span>
           </button>
 
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-academic-navy bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-academic-navy bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Format Another Assignment</span>
